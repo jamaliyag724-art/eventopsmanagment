@@ -1,3 +1,4 @@
+
 import {
   Activity,
   BarChart3,
@@ -9,14 +10,17 @@ import {
   Handshake,
   Landmark,
   LayoutDashboard,
-  LifeBuoy,
   Settings2,
   Sparkles,
   Wallet,
   type LucideIcon,
 } from "lucide-react";
 
-export type ModuleItem = { label: string; slug: string; icon: LucideIcon };
+export type ModuleItem = {
+  label: string;
+  slug: string;
+  icon: LucideIcon;
+};
 
 export const modules: ModuleItem[] = [
   { label: "Overview", slug: "overview", icon: LayoutDashboard },
@@ -34,37 +38,176 @@ export const modules: ModuleItem[] = [
   { label: "Settings", slug: "settings", icon: Settings2 },
 ];
 
+// Demo events
 export const events = [
-  { name: "Northstar Product Summit", type: "Conference", date: "Oct 24, 2026", venue: "Pier 27 · San Francisco", status: "In planning", budget: "$248,000", progress: 72 },
-  { name: "Fieldnotes Founders Dinner", type: "Gala dinner", date: "Nov 08, 2026", venue: "The Foundry · New York", status: "In planning", budget: "$86,500", progress: 58 },
-  { name: "Goodwood Partner Forum", type: "Partner forum", date: "Nov 19, 2026", venue: "The Hoxton · London", status: "Confirmed", budget: "$124,000", progress: 91 },
-  { name: "Common Ground Festival", type: "Public festival", date: "Dec 05, 2026", venue: "Crissy Field · San Francisco", status: "At risk", budget: "$310,000", progress: 36 },
-  { name: "Morrow Annual Meeting", type: "Company meeting", date: "Jan 16, 2027", venue: "The Glasshouse · New York", status: "In planning", budget: "$174,000", progress: 24 },
+  {
+    name: "Northstar Product Summit",
+    type: "Conference",
+    date: "Oct 24, 2026",
+    venue: "Pier 27 · San Francisco",
+    status: "Completed",
+    budget: "$248,000",
+    progress: 100,
+  },
+  {
+    name: "Fieldnotes Founders Dinner",
+    type: "Gala dinner",
+    date: "Nov 08, 2026",
+    venue: "The Foundry · New York",
+    status: "Completed",
+    budget: "$86,500",
+    progress: 100,
+  },
+  {
+    name: "Goodwood Partner Forum",
+    type: "Partner forum",
+    date: "Nov 19, 2026",
+    venue: "The Hoxton · London",
+    status: "Confirmed",
+    budget: "$124,000",
+    progress: 91,
+  },
+  {
+    name: "Common Ground Festival",
+    type: "Public festival",
+    date: "Dec 05, 2026",
+    venue: "Crissy Field · San Francisco",
+    status: "At risk",
+    budget: "$310,000",
+    progress: 36,
+  },
+  {
+    name: "Morrow Annual Meeting",
+    type: "Company meeting",
+    date: "Jan 16, 2027",
+    venue: "The Glasshouse · New York",
+    status: "In planning",
+    budget: "$174,000",
+    progress: 24,
+  },
 ];
 
+// Demo tasks
 export const tasks = [
-  { title: "Approve final scenic renders", event: "Northstar Product Summit", owner: "Maya Chen", due: "Today", status: "In progress", priority: "High" },
-  { title: "Confirm dietary requirements", event: "Fieldnotes Founders Dinner", owner: "Alex Morgan", due: "Oct 21", status: "To do", priority: "Medium" },
-  { title: "Review lighting plot", event: "Common Ground Festival", owner: "Jordan Lee", due: "Oct 22", status: "In progress", priority: "High" },
-  { title: "Send sponsor asset guide", event: "Goodwood Partner Forum", owner: "Sam Rivera", due: "Oct 23", status: "Done", priority: "Low" },
-  { title: "Lock guest transport plan", event: "Northstar Product Summit", owner: "Maya Chen", due: "Oct 24", status: "To do", priority: "Medium" },
+  {
+    title: "Finalize speaker presentation materials",
+    event: "Goodwood Partner Forum",
+    owner: "Maya Chen",
+    due: "Nov 16",
+    status: "In progress",
+    priority: "High",
+  },
+  {
+    title: "Confirm final guest arrangements",
+    event: "Goodwood Partner Forum",
+    owner: "Alex Morgan",
+    due: "Nov 17",
+    status: "To do",
+    priority: "Medium",
+  },
+  {
+    title: "Resolve lighting and production risks",
+    event: "Common Ground Festival",
+    owner: "Jordan Lee",
+    due: "Nov 18",
+    status: "In progress",
+    priority: "High",
+  },
+  {
+    title: "Submit sponsor activation plan",
+    event: "Goodwood Partner Forum",
+    owner: "Sam Rivera",
+    due: "Nov 19",
+    status: "Done",
+    priority: "Low",
+  },
+  {
+    title: "Complete initial event timeline",
+    event: "Morrow Annual Meeting",
+    owner: "Maya Chen",
+    due: "Nov 20",
+    status: "To do",
+    priority: "Medium",
+  },
 ];
 
+// Demo vendors
 export const vendors = [
-  { name: "Gather & Grain", category: "Catering", contact: "Lena Morris", rating: "4.9", events: "12 events", status: "Preferred" },
-  { name: "Northline Production", category: "AV & Production", contact: "Theo James", rating: "4.8", events: "8 events", status: "Contracted" },
-  { name: "Petal & Stem Studio", category: "Floral & Decor", contact: "Camille Reed", rating: "4.7", events: "6 events", status: "Preferred" },
-  { name: "Goodway Guest Travel", category: "Transport", contact: "Rafi Khan", rating: "4.6", events: "4 events", status: "Review due" },
-  { name: "Studio Lantern", category: "Photography", contact: "Nina Park", rating: "4.9", events: "9 events", status: "Contracted" },
+  {
+    name: "Gather & Grain",
+    category: "Catering",
+    contact: "Lena Morris",
+    rating: "4.9",
+    events: "12 events",
+    status: "Preferred",
+  },
+  {
+    name: "Northline Production",
+    category: "AV & Production",
+    contact: "Theo James",
+    rating: "4.8",
+    events: "8 events",
+    status: "Contracted",
+  },
+  {
+    name: "Petal & Stem Studio",
+    category: "Floral & Decor",
+    contact: "Camille Reed",
+    rating: "4.7",
+    events: "6 events",
+    status: "Preferred",
+  },
+  {
+    name: "Goodway Guest Travel",
+    category: "Transport",
+    contact: "Rafi Khan",
+    rating: "4.6",
+    events: "4 events",
+    status: "Review due",
+  },
+  {
+    name: "Studio Lantern",
+    category: "Photography",
+    contact: "Nina Park",
+    rating: "4.9",
+    events: "9 events",
+    status: "Contracted",
+  },
 ];
 
+// Demo activity feed
 export const activities = [
-  { who: "Maya Chen", action: "approved the lighting estimate", event: "Northstar Product Summit", time: "12 min ago", initials: "MC" },
-  { who: "Jordan Lee", action: "added 3 new tasks", event: "Common Ground Festival", time: "48 min ago", initials: "JL" },
-  { who: "Alex Morgan", action: "uploaded the revised floor plan", event: "Fieldnotes Founders Dinner", time: "2 hrs ago", initials: "AM" },
-  { who: "Sam Rivera", action: "confirmed a sponsor deliverable", event: "Goodwood Partner Forum", time: "Yesterday", initials: "SR" },
+  {
+    who: "Maya Chen",
+    action: "updated the speaker presentation materials",
+    event: "Goodwood Partner Forum",
+    time: "12 min ago",
+    initials: "MC",
+  },
+  {
+    who: "Jordan Lee",
+    action: "flagged 2 production risks",
+    event: "Common Ground Festival",
+    time: "48 min ago",
+    initials: "JL",
+  },
+  {
+    who: "Alex Morgan",
+    action: "updated the guest arrangements",
+    event: "Goodwood Partner Forum",
+    time: "2 hrs ago",
+    initials: "AM",
+  },
+  {
+    who: "Sam Rivera",
+    action: "completed a sponsor deliverable",
+    event: "Goodwood Partner Forum",
+    time: "Yesterday",
+    initials: "SR",
+  },
 ];
 
+// Budget values are in thousands of USD ($K).
 export const budgetSeries = [
   { month: "Jun", planned: 38, actual: 31 },
   { month: "Jul", planned: 46, actual: 42 },
@@ -74,6 +217,7 @@ export const budgetSeries = [
   { month: "Nov", planned: 92, actual: 85 },
 ];
 
+// Module descriptions
 export const moduleDescriptions: Record<string, string> = {
   events: "Every detail, in one place.",
   planning: "Turn the run of show into a plan the whole team can trust.",
@@ -89,6 +233,7 @@ export const moduleDescriptions: Record<string, string> = {
   settings: "Your organization, team, and working preferences.",
 };
 
+// Module icon references
 export const moduleIcons = {
   CalendarDays,
   ClipboardList,
