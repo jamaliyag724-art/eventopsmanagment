@@ -1,26 +1,8 @@
-
 import { useState } from "react";
 import type { ElementType, ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
-import {
-  Activity,
-  Bell,
-  CalendarDays,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsUpDown,
-  CircleHelp,
-  ClipboardList,
-  Menu,
-  Plus,
-  Search,
-  Settings,
-  ShieldCheck,
-  Sparkles,
-  Wallet,
-  X,
-} from "lucide-react";
+import { ShieldCheck } from "lucide-react";
+import { Sidebar } from "./layout/sidebar";
+import { Topbar } from "./layout/topbar";
 import {
   Area,
   AreaChart,
@@ -30,7 +12,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { toast } from "sonner";
 import {
   modules,
   events,
@@ -42,7 +23,6 @@ import {
 } from "./data";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -52,14 +32,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -91,347 +63,30 @@ export function AppShell({
 
   return (
     <div className="app-frame min-h-screen bg-background text-foreground">
-      {mobileOpen && (
-        <button
-          aria-label="Close navigation"
-          className="fixed inset-0 z-40 bg-foreground/30 md:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
-
-      <aside
-        className={`app-sidebar fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-sidebar transition-[width,transform] duration-200 ${
-          collapsed ? "w-[76px]" : "w-[264px]"
-        } ${
-          mobileOpen
-            ? "translate-x-0"
-            : "-translate-x-full md:translate-x-0"
-        }`}
-      >
-        <div className="flex h-[72px] items-center justify-between border-b border-sidebar-border px-5">
-          <Link
-            to="/"
-            className="flex items-center gap-3 overflow-hidden"
-            aria-label="EventOps home"
-          >
-            <span className="brand-mark grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-primary text-primary-foreground">
-              <span className="text-sm font-semibold">e.</span>
-            </span>
-            {!collapsed && (
-              <span className="text-[18px] font-semibold tracking-[-0.3px]">
-                eventops
-              </span>
-            )}
-          </Link>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hidden h-8 w-8 md:inline-flex"
-            onClick={() => setCollapsed((v) => !v)}
-            aria-label={
-              collapsed ? "Expand navigation" : "Collapse navigation"
-            }
-          >
-            {collapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 md:hidden"
-            onClick={() => setMobileOpen(false)}
-            aria-label="Close menu"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {!collapsed && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="mx-3 mt-4 flex items-center gap-3 rounded-md border border-sidebar-border bg-background/60 p-2.5 text-left hover:bg-sidebar-accent">
-                <span className="grid h-8 w-8 place-items-center rounded-sm bg-secondary text-xs font-semibold">
-                  ME
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13px] font-semibold">
-                    {org}
-                  </span>
-                  <span className="block text-[11px] text-muted-foreground">
-                    Studio plan
-                  </span>
-                </span>
-                <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
-              </button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent align="start" className="w-56">
-              <DropdownMenuLabel>Organizations</DropdownMenuLabel>
-              {[
-                "Morrow Events",
-                "Northstar Collective",
-                "Common Ground Co.",
-              ].map((name) => (
-                <DropdownMenuItem
-                  key={name}
-                  onClick={() => setOrg(name)}
-                >
-                  {name}
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() =>
-                  toast.success("Organization settings opened")
-                }
-              >
-                Manage organizations
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-
-        <nav
-          aria-label="Workspace navigation"
-          className="flex-1 overflow-y-auto px-3 py-5"
-        >
-          {!collapsed && (
-            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-              Workspace
-            </p>
-          )}
-
-          <div className="space-y-1">
-            {modules.map(({ label, slug, icon: Icon }) => {
-              const active = module === slug && !admin;
-
-              return (
-                <Link
-                  key={slug}
-                  to="/app/$module"
-                  params={{ module: slug }}
-                  onClick={() => setMobileOpen(false)}
-                  title={collapsed ? label : undefined}
-                  className={`group flex h-10 items-center gap-3 rounded-md px-3 text-[13px] transition-colors ${
-                    active
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent"
-                  }`}
-                >
-                  <Icon className="h-[17px] w-[17px] shrink-0" />
-                  {!collapsed && (
-                    <>
-                      <span className="flex-1 truncate">{label}</span>
-                      {slug === "live-operations" && (
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
-                      )}
-                    </>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="mt-6 border-t border-sidebar-border pt-4">
-            {!collapsed && (
-              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                Administration
-              </p>
-            )}
-
-            <Link
-              to="/admin"
-              title={collapsed ? "Platform administration" : undefined}
-              className={`flex h-10 items-center gap-3 rounded-md px-3 text-[13px] ${
-                admin
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent"
-              }`}
-            >
-              <ShieldCheck className="h-[17px] w-[17px] shrink-0" />
-              {!collapsed && <span>Platform admin</span>}
-            </Link>
-          </div>
-        </nav>
-
-        <div className="border-t border-sidebar-border p-3">
-          {!collapsed && (
-            <div className="mb-3 rounded-md bg-sidebar-accent/70 p-3">
-              <div className="flex items-center gap-2 text-[12px] font-semibold">
-                <Sparkles className="h-3.5 w-3.5 text-primary" />
-                Your season, in view
-              </div>
-              <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
-                Your upcoming events, teams and deadlines in one place.
-              </p>
-            </div>
-          )}
-
-          <button
-            onClick={() => toast.info("Help center opened")}
-            className="flex h-9 w-full items-center gap-3 rounded-md px-3 text-[12px] text-muted-foreground hover:bg-sidebar-accent"
-          >
-            <CircleHelp className="h-4 w-4" />
-            {!collapsed && "Help & support"}
-          </button>
-        </div>
-      </aside>
+      <Sidebar
+        module={module}
+        admin={admin}
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        mobileOpen={mobileOpen}
+        setMobileOpen={setMobileOpen}
+        org={org}
+        setOrg={setOrg}
+      />
 
       <div
         className={`min-h-screen transition-[margin] duration-200 ${
           collapsed ? "md:ml-[76px]" : "md:ml-[264px]"
         }`}
       >
-        <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-sm md:px-8">
-          <div className="flex min-w-0 items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setMobileOpen(true)}
-              aria-label="Open menu"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-
-            <div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">
-              <span>Workspace</span>
-              <ChevronRight className="h-3.5 w-3.5" />
-              <span className="font-medium text-foreground">{title}</span>
-            </div>
-
-            <div className="sm:hidden truncate text-sm font-semibold">
-              {title}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 md:gap-3">
-            <label className="relative hidden w-[min(32vw,270px)] md:block">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search workspace"
-                aria-label="Search workspace"
-                className="h-9 pl-9 pr-12 text-xs"
-              />
-              <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-border px-1 text-[9px] text-muted-foreground">
-                ⌘ K
-              </kbd>
-            </label>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              aria-label="Search"
-              onClick={() => {
-                document.getElementById("mobile-search")?.focus();
-              }}
-            >
-              <Search className="h-4 w-4" />
-            </Button>
-
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Notifications"
-                onClick={() => setNotificationsOpen((v) => !v)}
-                className="relative"
-              >
-                <Bell className="h-[17px] w-[17px]" />
-                <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary" />
-              </Button>
-
-              {notificationsOpen && (
-                <div className="absolute right-0 top-11 z-50 w-[min(340px,calc(100vw-32px))] rounded-md border border-border bg-popover p-4 shadow-lg">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold">Notifications</h3>
-                    <button
-                      className="text-xs text-muted-foreground"
-                      onClick={() => setNotificationsOpen(false)}
-                    >
-                      Close
-                    </button>
-                  </div>
-
-                  <div className="mt-4 space-y-3 text-xs">
-                    <p className="border-l-2 border-primary pl-3 leading-relaxed">
-                      <b>Budget review due</b>
-                      <span className="block text-muted-foreground">
-                        Common Ground Festival · 2 approvals await you
-                      </span>
-                    </p>
-                    <p className="border-l-2 border-chart-2 pl-3 leading-relaxed">
-                      <b>Vendor confirmed</b>
-                      <span className="block text-muted-foreground">
-                        Goodwood Forum · Gather & Grain
-                      </span>
-                    </p>
-                    <p className="border-l-2 border-border pl-3 leading-relaxed">
-                      <b>New floor plan uploaded</b>
-                      <span className="block text-muted-foreground">
-                        Goodwood Forum · 2 hours ago
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-9 gap-2 px-1.5">
-                  <span className="grid h-7 w-7 place-items-center rounded-full bg-secondary text-[10px] font-semibold">
-                    MC
-                  </span>
-                  <span className="hidden text-xs font-medium lg:block">
-                    Maya Chen
-                  </span>
-                  <ChevronDown className="hidden h-3.5 w-3.5 text-muted-foreground lg:block" />
-                </Button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Maya Chen · Owner</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => toast.success("Profile opened")}
-                >
-                  My profile
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => toast.success("Preferences opened")}
-                >
-                  Preferences
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    toast.success("Sign-in is simulated in this prototype")
-                  }
-                >
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-
-        <Input
-          id="mobile-search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search workspace"
-          aria-label="Search workspace"
-          className="m-4 w-[calc(100%-2rem)] md:hidden"
+        <Topbar
+          title={title}
+          search={search}
+          setSearch={setSearch}
+          setMobileOpen={setMobileOpen}
+          notificationsOpen={notificationsOpen}
+          setNotificationsOpen={setNotificationsOpen}
         />
-
         <main className="mx-auto w-full max-w-[1540px] px-4 pb-12 pt-7 md:px-8 md:pt-9">
           {admin ? (
             <AdminPage search={search} />
