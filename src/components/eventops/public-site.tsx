@@ -23,9 +23,9 @@ function PublicNav({ active }: { active?: string }) {
   return <header className="relative z-40 border-b border-border/80 bg-background"><div className="mx-auto flex h-[70px] max-w-[1320px] items-center justify-between px-5 md:px-8">
     <Link to="/" className="flex shrink-0 items-center" aria-label="Utsav home">
 <img
-  src="/utsav-horizontal-logo.svg"
+  src="/utsav-horizontal-logo-navbar.svg"
   alt="उत्सव — संकल्प से उत्सव तक"
-  className="h-12 w-auto object-contain"
+  className="h-14 w-auto shrink-0 object-contain"
 />
 </Link>
     <nav aria-label="Main navigation" className="hidden items-center gap-8 md:flex">{publicLinks.map((link) => <Link key={link.to} to={link.to} className={`text-[12px] transition-colors hover:text-primary ${active === link.label ? "font-semibold text-foreground" : "text-muted-foreground"}`}>{link.label}</Link>)}</nav>
