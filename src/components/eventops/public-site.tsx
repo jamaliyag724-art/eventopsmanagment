@@ -20,18 +20,93 @@ const publicLinks = [
 
 function PublicNav({ active }: { active?: string }) {
   const [open, setOpen] = useState(false);
-  return <header className="relative z-40 border-b border-border/80 bg-background"><div className="mx-auto flex h-[70px] max-w-[1320px] items-center justify-between px-5 md:px-8">
-    <Link to="/" className="flex shrink-0 items-center" aria-label="Utsav home">
-<img
-  src="/utsav-horizontal-logo-navbar.svg"
-  alt="उत्सव — संकल्प से उत्सव तक"
-  className="h-14 w-auto shrink-0 object-contain"
-/>
-</Link>
-    <nav aria-label="Main navigation" className="hidden items-center gap-8 md:flex">{publicLinks.map((link) => <Link key={link.to} to={link.to} className={`text-[12px] transition-colors hover:text-primary ${active === link.label ? "font-semibold text-foreground" : "text-muted-foreground"}`}>{link.label}</Link>)}</nav>
-    <div className="hidden items-center gap-4 md:flex"><Link to="/login" className="text-[12px] font-medium text-muted-foreground hover:text-foreground">Sign in</Link><Button asChild size="sm" className="h-9 rounded-sm px-4 text-xs"><Link to="/signup">Get started <ArrowRight className="ml-2 h-3.5 w-3.5" /></Link></Button></div>
-    <Button variant="ghost" size="icon" className="md:hidden" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen((v) => !v)}>{open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</Button>
-  </div>{open && <div className="absolute inset-x-0 top-full border-b border-border bg-background px-5 py-4 shadow-sm md:hidden"><nav className="grid gap-1">{publicLinks.map((link) => <Link key={link.to} to={link.to} onClick={() => setOpen(false)} className="rounded-sm px-3 py-3 text-sm hover:bg-secondary">{link.label}</Link>)}<div className="mt-2 flex gap-2 border-t border-border pt-3"><Button asChild variant="outline" className="flex-1 rounded-sm"><Link to="/login">Sign in</Link></Button><Button asChild className="flex-1 rounded-sm"><Link to="/signup">Get started</Link></Button></div></nav></div>}</header>;
+
+  return (
+    <header className="relative z-40 border-b border-border/70 bg-background">
+      <div className="mx-auto grid h-[76px] max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center px-5 sm:px-7 lg:px-10">
+        <Link to="/" className="flex w-fit shrink-0 items-center" aria-label="Utsav home">
+          <img
+            src="/utsav-horizontal-logo-navbar.svg"
+            alt="उत्सव — संकल्प से उत्सव तक"
+            className="h-14 w-auto shrink-0 object-contain"
+          />
+        </Link>
+
+        <nav aria-label="Main navigation" className="hidden items-center gap-9 md:flex">
+          {publicLinks.map((link) => (
+            <Link
+              key={link.to}
+              to={link.to}
+              aria-current={active === link.label ? "page" : undefined}
+              className={`relative py-2 text-[13px] font-medium transition-colors hover:text-primary ${
+                active === link.label
+                  ? "text-foreground after:absolute after:inset-x-0 after:-bottom-[2px] after:h-[2px] after:rounded-full after:bg-primary"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="hidden items-center justify-self-end gap-6 md:flex">
+          <Link
+            to="/login"
+            className="text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Sign in
+          </Link>
+          <Button
+            asChild
+            size="sm"
+            className="h-10 rounded-lg px-5 text-[13px] font-semibold shadow-sm transition-transform hover:-translate-y-0.5"
+          >
+            <Link to="/signup">
+              Get started <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="col-start-3 justify-self-end md:hidden"
+          aria-label={open ? "Close menu" : "Open menu"}
+          aria-expanded={open}
+          onClick={() => setOpen((value) => !value)}
+        >
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
+      </div>
+
+      {open && (
+        <div className="absolute inset-x-0 top-full border-b border-border bg-background px-5 py-4 shadow-lg md:hidden">
+          <nav aria-label="Mobile navigation" className="mx-auto grid max-w-[1440px] gap-1">
+            {publicLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                onClick={() => setOpen(false)}
+                className={`rounded-lg px-3 py-3 text-sm font-medium transition-colors hover:bg-secondary ${
+                  active === link.label ? "bg-secondary text-foreground" : "text-muted-foreground"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+            <div className="mt-3 flex gap-3 border-t border-border pt-4">
+              <Button asChild variant="outline" className="h-10 flex-1 rounded-lg">
+                <Link to="/login" onClick={() => setOpen(false)}>Sign in</Link>
+              </Button>
+              <Button asChild className="h-10 flex-1 rounded-lg">
+                <Link to="/signup" onClick={() => setOpen(false)}>Get started</Link>
+              </Button>
+            </div>
+          </nav>
+        </div>
+      )}
+    </header>
+  );
 }
 
 function PublicFooter() { return <footer className="border-t border-border bg-secondary/35"><div className="mx-auto grid max-w-[1320px] gap-10 px-5 py-12 md:grid-cols-[1.5fr_1fr_1fr_1fr] md:px-8"><div><Link to="/" className="flex items-center gap-2.5"><span className="grid h-8 w-8 place-items-center rounded-[9px] bg-primary text-primary-foreground"><span className="text-sm font-semibold">e.</span></span><span className="text-base font-semibold">eventops</span></Link><p className="mt-4 max-w-xs text-xs leading-relaxed text-muted-foreground">The operational workspace for teams who bring ambitious events to life.</p></div><FooterGroup title="Platform" links={[["Features", "/features"], ["Solutions", "/solutions"], ["Pricing", "/pricing"]]} /><FooterGroup title="Company" links={[["About", "/about"], ["Contact", "/contact"]]} /><FooterGroup title="Get started" links={[["Sign in", "/login"], ["Create account", "/signup"], ["Workspace demo", "/app"]]} /><div className="border-t border-border pt-5 text-[10px] text-muted-foreground md:col-span-4">© 2026 EventOps · Sample product experience</div></div></footer>; }
