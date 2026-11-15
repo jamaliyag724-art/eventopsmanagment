@@ -48,15 +48,14 @@ const photos = {
 
 type PublicNavItem = "Platform" | "Solutions" | "Pricing" | "About" | "Contact";
 
-function Brand({ inverse = false }: { inverse?: boolean }) {
+function Brand() {
   return (
-    <Link to="/" className="inline-flex items-center gap-2.5" aria-label="Utsav home">
-      <span className="grid h-9 w-9 place-items-center rounded-md bg-primary text-lg font-semibold text-primary-foreground">
-        उ
-      </span>
-      <span className={`text-[21px] font-semibold tracking-[-0.7px] ${inverse ? "text-white" : "text-foreground"}`}>
-        utsav<span className="text-primary">.</span>
-      </span>
+    <Link to="/" className="inline-flex items-center" aria-label="Utsav home">
+      <img
+        src="/utsav-horizontal-logo-navbar.svg"
+        alt="उत्सव — संकल्प से उत्सव तक"
+        className="h-14 w-auto max-w-[190px] shrink-0 object-contain"
+      />
     </Link>
   );
 }
