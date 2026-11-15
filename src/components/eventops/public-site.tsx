@@ -35,15 +35,15 @@ import { Textarea } from "@/components/ui/textarea";
 
 const photos = {
   conference:
-    "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1800&q=85",
+    "https://rockwellautomation.scene7.com/is/image/rockwellautomation/iiotm-2025-hero-banner.2400.jpg",
   wedding:
-    "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=85",
+    "https://cdn.venuelook.com/blog/personal-touches-with-floral-d-cor-9418bc42-83ab-4f77-b498-ab5bd706502a.jpg",
   festival:
-    "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=1200&q=85",
+    "https://www.jims.in/images/verve/verve2k25/paradox.png",
   exhibition:
-    "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=85",
+    "https://www.businessdirectoryindia.in/media/640/large/convergence-india-expo-photos-01.jpg?v=1",
   venue:
-    "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1800&q=85",
+    "https://www.skilevents.com/public/uploads/blog/e23e6d10d1851da7ae9ef9153194a965.webp",
 };
 
 type PublicNavItem = "Platform" | "Solutions" | "Pricing" | "About" | "Contact";
@@ -183,15 +183,30 @@ function Home() {
     <>
       <PublicNav />
       <main>
-        <section className="overflow-hidden bg-secondary/50">
+        <section className="relative isolate overflow-hidden bg-[#f3eee3]">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -z-10 opacity-[0.22]"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(45deg, transparent 0 22px, rgba(139,91,54,.12) 22px 23px, transparent 23px 45px), repeating-linear-gradient(-45deg, transparent 0 22px, rgba(139,91,54,.09) 22px 23px, transparent 23px 45px)",
+              maskImage: "linear-gradient(90deg, black, transparent 62%)",
+            }}
+          />
+          <div className="pointer-events-none absolute -right-24 -top-28 -z-10 h-[420px] w-[420px] rounded-full border border-[#b88b5a]/20" />
+          <div className="pointer-events-none absolute -right-12 -top-16 -z-10 h-[300px] w-[300px] rounded-full border border-[#b88b5a]/20" />
           <div className="mx-auto grid max-w-[1320px] items-center gap-10 px-5 py-14 md:grid-cols-[0.92fr_1.08fr] md:px-8 md:py-20">
             <div className="relative z-10">
-              <Eyebrow>Event operations, brought together</Eyebrow>
+              <Eyebrow>Rooted in India. Built for every gathering.</Eyebrow>
               <h1 className="mt-5 max-w-[650px] text-[42px] font-semibold leading-[1.04] tracking-[-1.7px] md:text-[64px]">
                 Make every moving part <span className="text-primary">work as one.</span>
               </h1>
               <p className="mt-6 max-w-[540px] text-sm leading-7 text-muted-foreground md:text-base">
                 Utsav gives professional event teams one clear place to plan, organize, execute and learn — from the first brief to the final wrap-up.
+              </p>
+              <p className="mt-4 inline-flex items-center gap-2 text-[10px] font-medium tracking-[0.04em] text-[#87603f]">
+                <span className="h-px w-7 bg-[#b16a45]" />
+                From boardrooms and convention halls to weddings and festivals
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button asChild className="h-11 rounded-sm px-5 text-xs"><Link to="/signup">Explore the workspace <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
@@ -205,11 +220,11 @@ function Home() {
             </div>
             <div className="relative">
               <div className="absolute -inset-5 rounded-full bg-primary/10 blur-3xl" />
-              <div className="relative overflow-hidden rounded-sm border border-border bg-background p-2 shadow-xl">
-                <img src={photos.conference} alt="A professional conference audience in a large event venue" className="h-[300px] w-full object-cover md:h-[440px]" />
+              <div className="relative overflow-hidden rounded-sm border border-[#b88b5a]/45 bg-[#fffaf1] p-2 shadow-[0_22px_55px_rgba(75,49,29,0.18)]">
+                <img src={photos.conference} alt="Delegates attending a professional conference in India" className="h-[300px] w-full object-cover md:h-[440px]" />
                 <div className="absolute bottom-6 left-6 right-6 grid grid-cols-3 gap-2">
                   {[["01", "Plan"], ["02", "Coordinate"], ["03", "Deliver"]].map(([number, label]) => (
-                    <div key={number} className="border border-white/25 bg-black/55 p-3 text-white backdrop-blur">
+                    <div key={number} className="border border-[#e8d4b7]/35 bg-[#211b17]/65 p-3 text-white backdrop-blur">
                       <p className="text-[9px] text-white/65">{number}</p><p className="mt-1 text-xs font-medium">{label}</p>
                     </div>
                   ))}
@@ -255,7 +270,7 @@ function Home() {
               ["Weddings & celebrations", photos.wedding],
               ["Festivals & live experiences", photos.festival],
               ["Exhibitions & trade shows", photos.exhibition],
-            ].map(([title, src]) => <article key={title} className="group relative overflow-hidden bg-foreground"><img src={src} alt={title} loading="lazy" className="h-[250px] w-full object-cover opacity-85 transition duration-500 group-hover:scale-105" /><div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-5 pt-16"><h3 className="text-sm font-semibold text-white">{title}</h3></div></article>)}
+            ].map(([title, src]) => <article key={title} className="group relative overflow-hidden border border-[#b88b5a]/25 bg-[#eee4d4]"><img src={src} alt={`${title} in India`} loading="lazy" className="h-[250px] w-full object-cover transition duration-500 group-hover:scale-105" /><div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#211b17]/90 via-[#211b17]/25 to-transparent p-5 pt-16"><h3 className="text-sm font-semibold text-white">{title}</h3></div></article>)}
           </div>
         </section>
 
@@ -323,7 +338,8 @@ export function PublicContentPage({ page }: { page: "features" | "solutions" | "
     <>
       <PublicNav active={page === "features" ? "Platform" : page === "solutions" ? "Solutions" : "About"} />
       <main>
-        <section className="bg-secondary/55">
+        <section className="relative overflow-hidden bg-[#f3eee3]">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-24 h-80 w-80 rounded-full border border-[#b88b5a]/20" />
           <div className="mx-auto max-w-[1320px] px-5 py-14 md:px-8 md:py-20">
             <Eyebrow>{content.eyebrow}</Eyebrow>
             <h1 className="mt-4 max-w-[780px] text-[38px] font-semibold leading-[1.08] tracking-[-0.9px] md:text-[54px]">{content.title}</h1>
