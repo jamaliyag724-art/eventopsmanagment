@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
-import { Link, useLocation } from "@tanstack/react-router";
+import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
-  Bell, ChevronDown, ChevronLeft, ChevronRight, ChevronsUpDown, CircleHelp, Command,
-  Menu, Plus, Search, Settings, ShieldCheck, Sparkles, X,
+  Activity, Bell, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, ChevronsUpDown,
+  CircleHelp, ClipboardList, Menu, Plus, Search, Settings, ShieldCheck, Sparkles, Wallet, X,
 } from "lucide-react";
 import {
   Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -18,17 +18,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 
-const formatCurrency = (value: number) => `$${value.toLocaleString("en-US")}`;
-
 export function AppShell({ module = "overview", admin = false }: { module?: string; admin?: boolean }) {
-  const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [org, setOrg] = useState("Morrow Events");
-  const current = admin ? { label: "Platform Overview", slug: "admin", icon: ShieldCheck } : modules.find((item) => item.slug === module) ?? modules[0]!;
-  const title = current.label;
+  const current = admin ? { label: "Platform Overview", slug: "admin", icon: ShieldCheck } : modules.find((item) => item.slug === module);
+  const title = current?.label ?? "Overview";
 
   return (
     <div className="app-frame min-h-screen bg-background text-foreground">
@@ -158,7 +155,7 @@ function ModulePage({ module, search }: { module: string; search: string }) {
   </>;
 }
 
-function DataTable({ headers, rows }: { headers: string[]; rows: string[][] }) { return <div className="w-full overflow-x-auto border-y border-border"><table className="w-full min-w-[720px] border-collapse text-left"><thead><tr className="bg-secondary/60">{headers.map((h) => <th key={h} className="px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">{h}</th>)}</tr></thead><tbody>{rows.map((row, i) => <tr key={row[0] + i} className="border-t border-border/70 hover:bg-secondary/25">{row.map((cell, j) => <td key={j} className={`px-3 py-3.5 text-[11px] ${j === 0 ? "font-medium text-foreground" : "text-muted-foreground"}`}>{j === headers.length - 1 || (headers[j] === "Status") ? <StatusBadge status={cell} /> : cell}</td>)}</tr>)}{rows.length === 0 && <tr><td colSpan={headers.length} className="px-3 py-12 text-center text-xs text-muted-foreground">Nothing matches your search.</td></tr>}</tbody></table></div>; }
+function DataTable({ headers, rows }: { headers: string[]; rows: string[][] }) { return <div className="w-full overflow-x-auto border-y border-border"><table className="w-full min-w-[720px] border-collapse text-left"><thead><tr className="bg-secondary/60">{headers.map((h) => <th key={h} className="px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">{h}</th>)}</tr></thead><tbody>{rows.map((row, i) => <tr key={`${row[0] ?? "row"}${i}`} className="border-t border-border/70 hover:bg-secondary/25">{row.map((cell, j) => <td key={j} className={`px-3 py-3.5 text-[11px] ${j === 0 ? "font-medium text-foreground" : "text-muted-foreground"}`}>{j === headers.length - 1 || (headers[j] === "Status") ? <StatusBadge status={cell} /> : cell}</td>)}</tr>)}{rows.length === 0 && <tr><td colSpan={headers.length} className="px-3 py-12 text-center text-xs text-muted-foreground">Nothing matches your search.</td></tr>}</tbody></table></div>; }
 
 const sampleRows: Record<string, { headers: string[]; rows: string[][]; summary: [string, string, string][] }> = {
   finance: { headers: ["Category", "Event", "Budget", "Actual", "Variance", "Status"], rows: [["Venue & site", "Northstar Product Summit", "$68,000", "$64,250", "-$3,750", "On track"], ["Production", "Northstar Product Summit", "$74,000", "$76,400", "+$2,400", "Review due"], ["Catering", "Fieldnotes Founders Dinner", "$24,500", "$19,800", "-$4,700", "On track"], ["Travel & transport", "Goodwood Partner Forum", "$18,000", "$12,650", "-$5,350", "On track"]], summary: [["Portfolio budget", "$942,000", "12 events"], ["Committed", "$614,320", "65% utilized"], ["Pending approval", "$18,400", "3 requests"]] },
@@ -175,7 +172,8 @@ const sampleRows: Record<string, { headers: string[]; rows: string[][]; summary:
 function GenericModule({ module, search }: { module: string; search: string }) {
   const [selected, setSelected] = useState("Portfolio");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const data = sampleRows[module] ?? sampleRows.finance!;
+  const data = sampleRows[module] ?? sampleRows["finance"];
+  if (!data) return null;
   const rows = data.rows.filter((row) => row.join(" ").toLowerCase().includes(search.toLowerCase()));
   if (module === "intelligence") return <><div className="mb-5 flex items-center gap-2 border-y border-border py-3 text-[11px] text-muted-foreground"><Sparkles className="h-4 w-4 text-primary" /><span>Illustrative insights · Demo content only</span></div><div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(260px,0.8fr)]"><section><SectionTitle>Signals to review</SectionTitle><DataTable headers={data.headers} rows={rows} /></section><section className="border border-border p-4"><div className="flex items-center gap-2 text-sm font-semibold"><Sparkles className="h-4 w-4 text-primary" />Portfolio brief</div><p className="mt-3 text-xs leading-relaxed text-muted-foreground">Across five upcoming events, two budgets are trending above early estimates. Three production tasks need an owner this week, and one venue hold is approaching its review date.</p><div className="mt-4 border-t border-border pt-3"><p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Suggested checks</p><ul className="mt-2 space-y-2 text-xs"><li>• Review revised scenic estimate</li><li>• Confirm festival load-in crew</li><li>• Extend Glasshouse venue hold</li></ul></div></section></div></>;
   return <>
@@ -195,8 +193,3 @@ function AdminPage({ search }: { search: string }) {
   const orgs = [["Morrow Events", "Studio", "24", "Oct 2025", "Active", "San Francisco"], ["Northstar Collective", "Enterprise", "68", "Sep 2025", "Active", "New York"], ["Common Ground Co.", "Studio", "16", "Jan 2026", "Review due", "London"], ["Goodwood Partners", "Team", "9", "Mar 2026", "Active", "London"]].filter((row) => row.join(" ").toLowerCase().includes(search.toLowerCase()));
   return <><PageHeading eyebrow="Platform administration · Demo environment" title="A view across every team." description="Manage organizations, accounts, subscriptions, and platform activity in one place." action={<Button className="h-9 rounded-sm text-xs" onClick={() => toast.info("Organization provisioning is simulated")}>Add organization</Button>} /><div className="grid gap-4 border-y border-border py-5 sm:grid-cols-4">{[["Organizations", "148", "+12 this month"], ["Active users", "2,840", "Across all teams"], ["Subscriptions", "132", "89% active"], ["Platform health", "99.98%", "Last 30 days"]].map(([name, value, note]) => <div key={name}><p className="text-[11px] text-muted-foreground">{name}</p><strong className="mt-1 block text-[23px]">{value}</strong><span className="text-[10px] text-muted-foreground">{note}</span></div>)}</div><div className="mt-7"><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><Tabs value={tab} onValueChange={setTab}><TabsList>{["Organizations", "Users", "Subscriptions", "Activity", "System settings"].map((item) => <TabsTrigger key={item} value={item}>{item}</TabsTrigger>)}</TabsList></Tabs><Button variant="outline" size="sm" onClick={() => toast.info(`${tab} report exported`)} className="h-8 text-[10px]">Export report</Button></div>{tab === "Organizations" ? <DataTable headers={["Organization", "Plan", "Members", "Started", "Status", "Location"]} rows={orgs} /> : <div className="border-y border-border py-10 text-center"><Settings className="mx-auto h-5 w-5 text-muted-foreground" /><p className="mt-3 text-sm font-medium">{tab}</p><p className="mt-1 text-xs text-muted-foreground">Platform {tab.toLowerCase()} controls are ready for review in this demo.</p><Button variant="outline" size="sm" className="mt-4" onClick={() => toast.success(`${tab} settings opened`)}>Open {tab.toLowerCase()}</Button></div>}</div><p className="mt-6 flex items-center gap-2 text-[10px] text-muted-foreground"><ShieldCheck className="h-3.5 w-3.5" />Sample organization data · Administrative controls are simulated and are not security boundaries.</p></>;
 }
-
-function CalendarDaysIcon(props: React.ComponentProps<typeof CalendarDays>) { return <CalendarDays {...props} />; }
-function ClipboardTasksIcon(props: React.ComponentProps<typeof ClipboardList>) { return <ClipboardList {...props} />; }
-function WalletIcon(props: React.ComponentProps<typeof Wallet>) { return <Wallet {...props} />; }
-function ActivityIcon(props: React.ComponentProps<typeof Activity>) { return <Activity {...props} />; }
