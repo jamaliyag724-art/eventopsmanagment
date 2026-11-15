@@ -35,15 +35,15 @@ import { Textarea } from "@/components/ui/textarea";
 
 const photos = {
   conference:
-    "https://rockwellautomation.scene7.com/is/image/rockwellautomation/iiotm-2025-hero-banner.2400.jpg",
+    "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1800&q=85",
   wedding:
-    "https://cdn.venuelook.com/blog/personal-touches-with-floral-d-cor-9418bc42-83ab-4f77-b498-ab5bd706502a.jpg",
+    "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1800&q=85",
   festival:
-    "https://www.jims.in/images/verve/verve2k25/paradox.png",
+    "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1800&q=85",
   exhibition:
-    "https://www.businessdirectoryindia.in/media/640/large/convergence-india-expo-photos-01.jpg?v=1",
+    "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1800&q=85",
   venue:
-    "https://www.skilevents.com/public/uploads/blog/e23e6d10d1851da7ae9ef9153194a965.webp",
+    "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1800&q=85",
 };
 
 const heroSlides = [
@@ -250,6 +250,9 @@ function Home() {
                       key={slide.label}
                       src={slide.image}
                       alt={slide.alt}
+                      onError={(event) => {
+                        event.currentTarget.style.visibility = "hidden";
+                      }}
                       loading={index === 0 ? "eager" : "lazy"}
                       fetchPriority={index === 0 ? "high" : "auto"}
                       className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-in-out ${
