@@ -1,7 +1,17 @@
-
 import { useState } from "react";
 import type { ElementType, ReactNode } from "react";
-import { ShieldCheck } from "lucide-react";
+import {
+  ShieldCheck,
+  CalendarDays,
+  ClipboardList,
+  Wallet,
+  Activity,
+  Plus,
+  Sparkles,
+} from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import { Sidebar } from "./layout/sidebar";
 import { Topbar } from "./layout/topbar";
 import {
