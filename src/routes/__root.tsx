@@ -19,7 +19,9 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">
+          Page not found
+        </h2>
         <p className="mt-2 text-sm text-muted-foreground">
           The page you're looking for doesn't exist or has been moved.
         </p>
@@ -39,8 +41,11 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
+
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    reportLovableError(error, {
+      boundary: "tanstack_root_error_component",
+    });
   }, [error]);
 
   return (
@@ -74,42 +79,64 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+}>()({
   head: () => ({
-    // Each content route, / included, sets its own head(). Never add og:image or
-    // twitter:image here: every page without its own would inherit the root's preview image.
-   meta: [
-  { charSet: "utf-8" },
-  { name: "viewport", content: "width=device-width, initial-scale=1" },
-  { title: "उत्सव | Utsav — संकल्प से उत्सव तक" },
-  {
-    name: "description",
-    content: "उत्सव — संकल्प से उत्सव तक। Plan, organize, execute and analyze every event in one workspace.",
-  },
-  { name: "author", content: "Utsav" },
-  { property: "og:title", content: "उत्सव | Utsav" },
-  {
-    property: "og:description",
-    content: "संकल्प से उत्सव तक — One workspace for every event.",
-  },
-  { property: "og:type", content: "website" },
-  { name: "twitter:card", content: "summary_large_image" },
-],
+    meta: [
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+
+      { title: "Utsav | From Vision to Celebration" },
+
+      {
+        name: "description",
+        content:
+          "Utsav is an event operations management platform that brings event planning, teams, vendors, budgets and execution together in one workspace.",
+      },
+
+      { name: "author", content: "Utsav" },
+
+      {
+        property: "og:title",
+        content: "Utsav | From Vision to Celebration",
+      },
+      {
+        property: "og:description",
+        content:
+          "One workspace to plan, organize, execute and analyze every event.",
+      },
+      { property: "og:type", content: "website" },
+
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" },
-     {
-  rel: "icon",
-  href: "/utsav-hindi-favicon.svg",
-  type: "image/svg+xml",
-},
+      {
+        rel: "preconnect",
+        href: "https://fonts.googleapis.com",
+      },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap",
+      },
+      {
+        rel: "icon",
+        href: "/utsav-hindi-favicon.svg",
+        type: "image/svg+xml",
+      },
     ],
   }),
+
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
