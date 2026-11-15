@@ -21,7 +21,13 @@ const publicLinks = [
 function PublicNav({ active }: { active?: string }) {
   const [open, setOpen] = useState(false);
   return <header className="relative z-40 border-b border-border/80 bg-background"><div className="mx-auto flex h-[70px] max-w-[1320px] items-center justify-between px-5 md:px-8">
-    <Link to="/" className="flex items-center gap-2.5" aria-label="EventOps home"><span className="grid h-8 w-8 place-items-center rounded-[9px] bg-primary text-primary-foreground"><span className="text-sm font-semibold">e.</span></span><span className="text-[17px] font-semibold tracking-[-0.2px]">eventops</span></Link>
+    <Link to="/" className="flex shrink-0 items-center" aria-label="Utsav home">
+  <img
+    src="/images/utsav-horizontal-logo.svg"
+    alt="उत्सव — संकल्प से उत्सव तक"
+    className="h-12 w-auto object-contain"
+  />
+</Link>
     <nav aria-label="Main navigation" className="hidden items-center gap-8 md:flex">{publicLinks.map((link) => <Link key={link.to} to={link.to} className={`text-[12px] transition-colors hover:text-primary ${active === link.label ? "font-semibold text-foreground" : "text-muted-foreground"}`}>{link.label}</Link>)}</nav>
     <div className="hidden items-center gap-4 md:flex"><Link to="/login" className="text-[12px] font-medium text-muted-foreground hover:text-foreground">Sign in</Link><Button asChild size="sm" className="h-9 rounded-sm px-4 text-xs"><Link to="/signup">Get started <ArrowRight className="ml-2 h-3.5 w-3.5" /></Link></Button></div>
     <Button variant="ghost" size="icon" className="md:hidden" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen((v) => !v)}>{open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</Button>
