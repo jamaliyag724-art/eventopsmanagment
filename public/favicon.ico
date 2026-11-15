@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 190" role="img" aria-labelledby="title desc">
+  <title id="title">उत्सव — संकल्प से उत्सव तक</title>
+  <desc id="desc">Minimal Indian-inspired architectural arch and lotus emblem with the Hindi Utsav wordmark and tagline.</desc>
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D9B765"/>
+      <stop offset="1" stop-color="#B98732"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(22 14)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 145 V78 C18 42 43 16 78 7 C113 16 138 42 138 78 V145" fill="none" stroke="#681827" stroke-width="7"/>
+    <path d="M32 145 V82 C32 54 50 33 78 25 C106 33 124 54 124 82 V145" fill="none" stroke="url(#gold)" stroke-width="3.5"/>
+    <path d="M11 146 H145" fill="none" stroke="#681827" stroke-width="7"/>
+    <circle cx="78" cy="45" r="3.8" fill="#C49A45" stroke="none"/>
+    <path d="M78 119 C66 103 69 87 78 76 C87 87 90 103 78 119Z" fill="#681827"/>
+    <path d="M74 119 C56 115 48 104 45 91 C59 94 70 104 74 119Z" fill="url(#gold)"/>
+    <path d="M82 119 C100 115 108 104 111 91 C97 94 86 104 82 119Z" fill="url(#gold)"/>
+    <path d="M72 122 C57 124 48 119 42 111 C56 109 66 114 72 122Z" fill="#C49A45"/>
+    <path d="M84 122 C99 124 108 119 114 111 C100 109 90 114 84 122Z" fill="#C49A45"/>
+    <path d="M78 120 V127" stroke="#681827" stroke-width="2.5"/>
+    <path d="M59 132 Q78 139 97 132" fill="none" stroke="url(#gold)" stroke-width="2.5"/>
+  </g>
+  <g transform="translate(198 0)">
+    <text x="0" y="112" font-family="'Noto Serif Devanagari','Nirmala UI','Mangal',serif" font-size="83" font-weight="700" letter-spacing="-2" fill="#681827">उत्सव</text>
+    <path d="M3 128 Q155 145 302 128" fill="none" stroke="url(#gold)" stroke-width="2.8" stroke-linecap="round"/>
+    <text x="4" y="163" font-family="'Noto Sans Devanagari','Nirmala UI','Mangal',sans-serif" font-size="25" font-weight="500" letter-spacing=".2" fill="#681827">संकल्प से उत्सव तक</text>
+    <circle cx="319" cy="155" r="3" fill="#C49A45"/>
+  </g>
+</svg>
