@@ -8,6 +8,12 @@ import {
   Activity,
   Plus,
   Sparkles,
+  MapPin,
+  ArrowUpRight,
+  LayoutGrid,
+  List as ListIcon,
+  CalendarCheck2,
+  Search,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
@@ -103,6 +109,8 @@ export function AppShell({
             <AdminPage search={search} />
           ) : module === "overview" ? (
             <Overview search={search} />
+          ) : module === "events" ? (
+            <EventsPage search={search} />
           ) : (
             <ModulePage module={module} search={search} />
           )}
@@ -505,6 +513,296 @@ function NewEventDialog() {
     </Dialog>
   );
 }
+
+
+type EventRecord = (typeof events)[number];
+
+const eventCoverImages: Record<string, string> = {
+  Conference: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=85",
+  "Gala dinner": "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=85",
+  "Public festival": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=1200&q=85",
+  "Company meeting": "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1200&q=85",
+  "Partner forum": "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1200&q=85",
+  default: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=85",
+};
+
+function formatEventDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
+function EventsPage({ search }: { search: string }) {
+  const [eventItems, setEventItems] = useState<EventRecord[]>(events);
+  const [view, setView] = useState<"Grid" | "List">("Grid");
+  const [filter, setFilter] = useState("All");
+  const [sort, setSort] = useState("Date: soonest");
+  const [selectedEvent, setSelectedEvent] = useState<EventRecord | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [date, setDate] = useState("");
+  const [type, setType] = useState("Conference");
+  const [venue, setVenue] = useState("");
+  const [budget, setBudget] = useState("");
+
+  const normalizedSearch = search.trim().toLowerCase();
+  const filteredEvents = eventItems
+    .filter((event) => filter === "All" || event.status === filter)
+    .filter((event) =>
+      `${event.name} ${event.type} ${event.venue} ${event.status}`
+        .toLowerCase()
+        .includes(normalizedSearch),
+    )
+    .sort((a, b) => {
+      if (sort === "Name: A–Z") return a.name.localeCompare(b.name);
+      if (sort === "Progress: high to low") return b.progress - a.progress;
+      if (sort === "Budget: high to low") {
+        return Number(b.budget.replace(/[^0-9.]/g, "")) -
+          Number(a.budget.replace(/[^0-9.]/g, ""));
+      }
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+
+  const upcomingCount = eventItems.filter(
+    (event) => event.status !== "Completed" && new Date(event.date) >= new Date(new Date().setHours(0, 0, 0, 0)),
+  ).length;
+  const completedCount = eventItems.filter((event) => event.status === "Completed").length;
+  const atRiskCount = eventItems.filter((event) => event.status === "At risk").length;
+  const totalBudget = eventItems.reduce(
+    (sum, event) => sum + Number(event.budget.replace(/[^0-9.]/g, "")),
+    0,
+  );
+
+  const createEvent = () => {
+    if (name.trim().length < 3 || !date || !venue.trim()) {
+      toast.error("Enter an event name, date and venue.");
+      return;
+    }
+    const formattedDate = formatEventDate(`${date}T12:00:00`);
+    const newEvent: EventRecord = {
+      name: name.trim(),
+      type,
+      date: formattedDate,
+      venue: venue.trim(),
+      status: "In planning",
+      budget: budget.trim() ? (budget.startsWith("$") ? budget : `$${budget}`) : "$0",
+      progress: 0,
+    };
+    setEventItems((current) => [newEvent, ...current]);
+    setName("");
+    setDate("");
+    setType("Conference");
+    setVenue("");
+    setBudget("");
+    setCreateOpen(false);
+    setFilter("All");
+    toast.success("Event added to this demo workspace.");
+  };
+
+  return (
+    <div className="space-y-7">
+      <PageHeading
+        eyebrow="Morrow Events · Event portfolio"
+        title="Events, thoughtfully organized."
+        description="Create, track and manage every event from the first plan to the final wrap-up."
+        action={
+          <Button onClick={() => setCreateOpen(true)} className="h-9 gap-2 rounded-lg px-4 text-xs">
+            <Plus className="h-4 w-4" /> New event
+          </Button>
+        }
+      />
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          { label: "Total events", value: eventItems.length, note: "In this workspace", icon: CalendarDays },
+          { label: "Upcoming", value: upcomingCount, note: "Scheduled ahead", icon: CalendarCheck2 },
+          { label: "Completed", value: completedCount, note: "Successfully delivered", icon: ClipboardList },
+          { label: "At risk", value: atRiskCount, note: "Needs attention", icon: Activity },
+        ].map((item, index) => (
+          <div key={item.label} className="rounded-xl border border-border/80 bg-card p-4 shadow-[0_2px_12px_rgba(38,32,24,0.035)]">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-medium text-muted-foreground">{item.label}</span>
+              <span className={`grid h-8 w-8 place-items-center rounded-lg ${index === 3 ? "bg-destructive/10 text-destructive" : "bg-secondary text-muted-foreground"}`}>
+                <item.icon className="h-4 w-4" />
+              </span>
+            </div>
+            <p className="mt-3 text-[26px] font-semibold tracking-tight">{item.value}</p>
+            <p className="mt-0.5 text-[10px] text-muted-foreground">{item.note}</p>
+          </div>
+        ))}
+      </div>
+
+      <section className="rounded-xl border border-border/80 bg-card p-4 shadow-[0_2px_12px_rgba(38,32,24,0.035)] md:p-5">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div>
+            <h2 className="text-sm font-semibold">Your event portfolio</h2>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {filteredEvents.length} of {eventItems.length} events shown · Total planned budget {totalBudget.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={filter} onValueChange={setFilter}>
+              <SelectTrigger className="h-9 w-[145px] text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {["All", "In planning", "Confirmed", "At risk", "Completed"].map((status) => (
+                  <SelectItem key={status} value={status}>{status === "All" ? "All statuses" : status}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={sort} onValueChange={setSort}>
+              <SelectTrigger className="h-9 w-[165px] text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Date: soonest">Date: soonest</SelectItem>
+                <SelectItem value="Name: A–Z">Name: A–Z</SelectItem>
+                <SelectItem value="Progress: high to low">Progress: high to low</SelectItem>
+                <SelectItem value="Budget: high to low">Budget: high to low</SelectItem>
+              </SelectContent>
+            </Select>
+            <Tabs value={view} onValueChange={(value) => setView(value as "Grid" | "List")}>
+              <TabsList className="h-9">
+                <TabsTrigger value="Grid" className="h-7 px-2.5"><LayoutGrid className="h-3.5 w-3.5" /><span className="sr-only">Grid view</span></TabsTrigger>
+                <TabsTrigger value="List" className="h-7 px-2.5"><ListIcon className="h-3.5 w-3.5" /><span className="sr-only">List view</span></TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        </div>
+
+        {filteredEvents.length === 0 ? (
+          <div className="mt-5 rounded-lg border border-dashed border-border px-4 py-14 text-center">
+            <Search className="mx-auto h-5 w-5 text-muted-foreground" />
+            <p className="mt-3 text-sm font-medium">No events found</p>
+            <p className="mt-1 text-xs text-muted-foreground">Try another search term or change the status filter.</p>
+            <Button variant="outline" size="sm" className="mt-4" onClick={() => { setFilter("All"); }}>
+              Clear status filter
+            </Button>
+          </div>
+        ) : view === "Grid" ? (
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+            {filteredEvents.map((event) => (
+              <article key={`${event.name}-${event.date}`} className="group overflow-hidden rounded-xl border border-border/80 bg-background transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(38,32,24,0.08)]">
+                <div className="relative h-40 overflow-hidden bg-secondary">
+                  <img
+                    src={eventCoverImages[event.type] ?? eventCoverImages.default}
+                    alt={`${event.type} event setting`}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/5" />
+                  <span className="absolute bottom-3 left-3 rounded-md border border-white/25 bg-black/30 px-2 py-1 text-[10px] font-medium text-white backdrop-blur-sm">{event.type}</span>
+                  <div className="absolute right-3 top-3"><StatusBadge status={event.status} /></div>
+                </div>
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="truncate text-sm font-semibold">{event.name}</h3>
+                      <p className="mt-2 flex items-center gap-1.5 text-[10px] text-muted-foreground"><CalendarDays className="h-3 w-3 shrink-0" />{event.date}</p>
+                      <p className="mt-1 flex items-center gap-1.5 truncate text-[10px] text-muted-foreground"><MapPin className="h-3 w-3 shrink-0" />{event.venue}</p>
+                    </div>
+                    <p className="shrink-0 text-xs font-semibold">{event.budget}</p>
+                  </div>
+                  <div className="mt-4 flex items-center gap-3">
+                    <Progress value={event.progress} className="h-1.5 flex-1" />
+                    <span className="text-[10px] font-semibold tabular-nums text-muted-foreground">{event.progress}%</span>
+                  </div>
+                  <div className="mt-4 flex items-center justify-between border-t border-border/70 pt-3">
+                    <span className="text-[10px] text-muted-foreground">Planning progress</span>
+                    <Button variant="ghost" size="sm" className="h-7 gap-1 px-2 text-[10px] text-primary" onClick={() => setSelectedEvent(event)}>
+                      View details <ArrowUpRight className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-5 overflow-x-auto rounded-lg border border-border/70">
+            <table className="w-full min-w-[760px] text-left">
+              <thead className="bg-secondary/60">
+                <tr>{["Event", "Date", "Venue", "Budget", "Status", "Progress", ""].map((heading) => <th key={heading} className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{heading}</th>)}</tr>
+              </thead>
+              <tbody>
+                {filteredEvents.map((event) => (
+                  <tr key={`${event.name}-${event.date}`} className="border-t border-border/70 hover:bg-secondary/25">
+                    <td className="px-4 py-3"><p className="text-xs font-semibold">{event.name}</p><p className="mt-0.5 text-[10px] text-muted-foreground">{event.type}</p></td>
+                    <td className="px-4 py-3 text-[11px] text-muted-foreground">{event.date}</td>
+                    <td className="px-4 py-3 text-[11px] text-muted-foreground">{event.venue}</td>
+                    <td className="px-4 py-3 text-[11px] font-medium">{event.budget}</td>
+                    <td className="px-4 py-3"><StatusBadge status={event.status} /></td>
+                    <td className="px-4 py-3"><div className="flex items-center gap-2"><Progress value={event.progress} className="h-1.5 w-16" /><span className="text-[10px] text-muted-foreground">{event.progress}%</span></div></td>
+                    <td className="px-4 py-3"><Button variant="ghost" size="sm" className="h-7 text-[10px]" onClick={() => setSelectedEvent(event)}>Details</Button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Create a new event</DialogTitle>
+            <DialogDescription>Add the core event details. This prototype stores new events in local page state only.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-2 sm:grid-cols-2">
+            <label className="grid gap-1.5 text-xs font-medium sm:col-span-2">Event name
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Annual leadership summit" />
+            </label>
+            <label className="grid gap-1.5 text-xs font-medium">Event date
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            </label>
+            <label className="grid gap-1.5 text-xs font-medium">Event type
+              <Select value={type} onValueChange={setType}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{["Conference", "Gala dinner", "Public festival", "Company meeting", "Partner forum", "Exhibition", "Wedding", "Sports event"].map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
+              </Select>
+            </label>
+            <label className="grid gap-1.5 text-xs font-medium sm:col-span-2">Venue
+              <Input value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="Venue name · City" />
+            </label>
+            <label className="grid gap-1.5 text-xs font-medium sm:col-span-2">Estimated budget
+              <Input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="e.g. 50000 (optional)" inputMode="decimal" />
+            </label>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+            <Button onClick={createEvent}>Create event</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(selectedEvent)} onOpenChange={(open) => !open && setSelectedEvent(null)}>
+        <DialogContent className="sm:max-w-[520px]">
+          {selectedEvent && (
+            <>
+              <div className="relative -mx-6 -mt-6 mb-2 h-44 overflow-hidden rounded-t-lg">
+                <img src={eventCoverImages[selectedEvent.type] ?? eventCoverImages.default} alt={`${selectedEvent.type} venue`} className="h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute bottom-3 left-4"><span className="rounded bg-black/30 px-2 py-1 text-[10px] text-white">{selectedEvent.type}</span></div>
+              </div>
+              <DialogHeader>
+                <div className="flex items-center justify-between gap-3"><DialogTitle>{selectedEvent.name}</DialogTitle><StatusBadge status={selectedEvent.status} /></div>
+                <DialogDescription>Event overview · Demo workspace</DialogDescription>
+              </DialogHeader>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg bg-secondary/60 p-3"><p className="text-[10px] text-muted-foreground">Event date</p><p className="mt-1 text-xs font-semibold">{selectedEvent.date}</p></div>
+                <div className="rounded-lg bg-secondary/60 p-3"><p className="text-[10px] text-muted-foreground">Estimated budget</p><p className="mt-1 text-xs font-semibold">{selectedEvent.budget}</p></div>
+                <div className="col-span-2 rounded-lg bg-secondary/60 p-3"><p className="text-[10px] text-muted-foreground">Venue</p><p className="mt-1 text-xs font-semibold">{selectedEvent.venue}</p></div>
+                <div className="col-span-2 rounded-lg bg-secondary/60 p-3"><div className="flex justify-between text-[10px]"><span className="text-muted-foreground">Planning progress</span><b>{selectedEvent.progress}%</b></div><Progress value={selectedEvent.progress} className="mt-2 h-2" /></div>
+              </div>
+              <DialogFooter><Button onClick={() => setSelectedEvent(null)}>Close</Button></DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 
 function ModulePage({
   module,
