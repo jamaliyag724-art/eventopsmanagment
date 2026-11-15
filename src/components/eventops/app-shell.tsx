@@ -159,19 +159,15 @@ function Stat({
   tone?: string;
 }) {
   return (
-    <div className="min-w-0 border-l border-border pl-4 first:border-l-0 first:pl-0 md:pl-5">
-      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-        <Icon
-          className={`h-3.5 w-3.5 ${
-            tone === "accent" ? "text-primary" : ""
-          }`}
-        />
-        {label}
+    <div className="group rounded-xl border border-border/80 bg-card p-4 shadow-[0_2px_12px_rgba(38,32,24,0.035)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(38,32,24,0.07)]">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-medium text-muted-foreground">{label}</span>
+        <span className={`grid h-8 w-8 place-items-center rounded-lg ${tone === "accent" ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"}`}>
+          <Icon className="h-4 w-4" />
+        </span>
       </div>
-      <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-        <strong className="text-[22px] font-semibold tracking-[-0.5px]">
-          {value}
-        </strong>
+      <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <strong className="text-[25px] font-semibold tracking-[-0.8px]">{value}</strong>
         <span className="text-[10px] text-muted-foreground">{delta}</span>
       </div>
     </div>
@@ -216,376 +212,154 @@ function formatToday() {
 
 function Overview({ search }: { search: string }) {
   const [range, setRange] = useState("6 months");
-
   const upcomingEvents = events.filter(isUpcomingEvent);
   const filteredEvents = upcomingEvents.filter((event) =>
-    `${event.name} ${event.type} ${event.venue}`
-      .toLowerCase()
-      .includes(search.toLowerCase()),
+    `${event.name} ${event.type} ${event.venue}`.toLowerCase().includes(search.toLowerCase()),
   );
-
   const filteredActivity = activities.filter((item) =>
-    `${item.who} ${item.action} ${item.event}`
-      .toLowerCase()
-      .includes(search.toLowerCase()),
+    `${item.who} ${item.action} ${item.event}`.toLowerCase().includes(search.toLowerCase()),
   );
+  const activeTasks = tasks.filter((task) => task.status !== "Done").length;
+  const eventPhotos = [
+    "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1000&q=85",
+    "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1000&q=85",
+    "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=1000&q=85",
+    "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1000&q=85",
+  ];
 
   return (
-    <>
-      <PageHeading
-        eyebrow={`${formatToday()} · Good morning, Maya`}
-        title="Your work, in good order."
-        description="A clear view of what's coming up, what needs attention, and where your team is moving."
-        action={<NewEventDialog />}
-      />
+    <div className="space-y-7">
+      <section className="relative isolate overflow-hidden rounded-2xl bg-[#292b25] px-6 py-7 text-white shadow-[0_14px_40px_rgba(35,32,25,0.12)] md:px-8 md:py-9">
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_82%_20%,rgba(190,132,91,0.34),transparent_42%),linear-gradient(110deg,rgba(24,27,23,0.98),rgba(47,48,40,0.9))]" />
+        <div className="absolute -right-10 -top-24 -z-10 h-72 w-72 rounded-full border border-white/10" />
+        <div className="absolute -right-1 -top-16 -z-10 h-56 w-56 rounded-full border border-white/10" />
+        <div className="max-w-2xl">
+          <p className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#e0b99b]">
+            <Sparkles className="h-3.5 w-3.5" /> {formatToday()} · Workspace overview
+          </p>
+          <h1 className="max-w-xl text-[28px] font-semibold leading-[1.12] tracking-[-1px] md:text-[38px]">
+            Every detail, moving in the right direction.
+          </h1>
+          <p className="mt-3 max-w-lg text-[13px] leading-relaxed text-white/65">
+            Your event portfolio at a glance. See what is approaching, what is progressing, and what needs your attention.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <NewEventDialog />
+            <span className="text-[10px] text-white/45">Demo workspace · Sample data</span>
+          </div>
+        </div>
+        <div className="mt-8 grid max-w-xl grid-cols-3 gap-3 border-t border-white/15 pt-5 md:mt-0 md:absolute md:bottom-8 md:right-8 md:w-[310px] md:border-l md:border-t-0 md:pl-6">
+          <div><p className="text-[10px] text-white/50">Upcoming</p><p className="mt-1 text-2xl font-semibold">{upcomingEvents.length}</p></div>
+          <div><p className="text-[10px] text-white/50">Active tasks</p><p className="mt-1 text-2xl font-semibold">{activeTasks}</p></div>
+          <div><p className="text-[10px] text-white/50">Approvals</p><p className="mt-1 text-2xl font-semibold">3</p></div>
+        </div>
+      </section>
 
-      <section className="grid grid-cols-2 gap-y-5 border-y border-border py-5 sm:grid-cols-3 lg:grid-cols-6">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
         <Stat label="Total events" value={String(events.length)} delta="In this demo" icon={CalendarDays} />
         <Stat label="Upcoming" value={String(upcomingEvents.length)} delta="Future events" icon={CalendarDays} tone="accent" />
-        <Stat label="Active tasks" value={String(tasks.filter((task) => task.status !== "Done").length)} delta="From sample task list" icon={ClipboardList} />
+        <Stat label="Active tasks" value={String(activeTasks)} delta="Sample task list" icon={ClipboardList} />
         <Stat label="Total budget" value="$942k" delta="Across active events" icon={Wallet} />
         <Stat label="Actual expenses" value="$614k" delta="65% utilized" icon={Wallet} tone="accent" />
         <Stat label="Approvals" value="3" delta="Need your review" icon={Activity} />
       </section>
 
-      <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.9fr)]">
-        <section className="min-w-0">
-          <SectionTitle
-            action={
-              <Link
-                to="/app/$module"
-                params={{ module: "events" }}
-                className="text-xs font-medium text-primary hover:underline"
-              >
-                All events <span aria-hidden>↗</span>
-              </Link>
-            }
-          >
-            Upcoming events
-          </SectionTitle>
-
-          <div className="overflow-hidden border-y border-border">
-            <div className="hidden grid-cols-[1.7fr_1fr_1.15fr_0.8fr_0.8fr] gap-3 bg-secondary/60 px-3 py-2.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground md:grid">
-              <span>Event</span>
-              <span>Date</span>
-              <span>Venue</span>
-              <span>Status</span>
-              <span className="text-right">Progress</span>
-            </div>
-
-            {filteredEvents.slice(0, 4).map((event) => (
-              <div
-                key={event.name}
-                className="grid grid-cols-2 gap-x-3 gap-y-2 border-b border-border/70 px-3 py-3.5 last:border-0 md:grid-cols-[1.7fr_1fr_1.15fr_0.8fr_0.8fr] md:items-center"
-              >
-                <div className="col-span-2 md:col-span-1">
-                  <div className="text-[12px] font-semibold">{event.name}</div>
-                  <div className="mt-0.5 text-[10px] text-muted-foreground">
-                    {event.type}
-                  </div>
-                </div>
-                <div className="text-[11px] text-muted-foreground">
-                  {event.date}
-                </div>
-                <div className="hidden truncate text-[11px] text-muted-foreground md:block">
-                  {event.venue}
-                </div>
-                <div>
-                  <StatusBadge status={event.status} />
-                </div>
-                <div className="flex items-center justify-end gap-2">
-                  <Progress value={event.progress} className="h-1.5 w-14" />
-                  <span className="text-[10px] text-muted-foreground">
-                    {event.progress}%
-                  </span>
-                </div>
+      <div className="grid items-start gap-6 2xl:grid-cols-[minmax(0,1.65fr)_minmax(310px,0.85fr)]">
+        <div className="min-w-0 space-y-7">
+          <section>
+            <SectionTitle action={<Link to="/app/$module" params={{ module: "events" }} className="text-xs font-semibold text-primary hover:underline">All events ↗</Link>}>
+              Upcoming events
+            </SectionTitle>
+            {filteredEvents.length ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {filteredEvents.slice(0, 4).map((event, index) => (
+                  <article key={event.name} className="group overflow-hidden rounded-xl border border-border/80 bg-card shadow-[0_2px_12px_rgba(38,32,24,0.035)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(38,32,24,0.08)]">
+                    <div className="relative h-36 overflow-hidden bg-secondary">
+                      <img src={eventPhotos[index % eventPhotos.length]} alt="Event venue atmosphere" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" loading="lazy" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/5" />
+                      <div className="absolute bottom-3 left-3"><span className="rounded-md border border-white/25 bg-black/25 px-2 py-1 text-[10px] font-medium text-white backdrop-blur-sm">{event.type}</span></div>
+                      <div className="absolute right-3 top-3"><StatusBadge status={event.status} /></div>
+                    </div>
+                    <div className="p-4">
+                      <h3 className="truncate text-[14px] font-semibold tracking-[-0.2px]">{event.name}</h3>
+                      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
+                        <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-3 w-3" />{event.date}</span>
+                        <span className="truncate">{event.venue}</span>
+                      </div>
+                      <div className="mt-4 flex items-center gap-3">
+                        <Progress value={event.progress} className="h-1.5 flex-1" />
+                        <span className="text-[10px] font-semibold tabular-nums text-muted-foreground">{event.progress}%</span>
+                      </div>
+                    </div>
+                  </article>
+                ))}
               </div>
-            ))}
-            {filteredEvents.length === 0 && (
-              <p className="px-3 py-8 text-center text-xs text-muted-foreground">
-                No upcoming events match your search.
-              </p>
+            ) : (
+              <div className="rounded-xl border border-dashed border-border bg-card px-4 py-10 text-center text-xs text-muted-foreground">No upcoming events match your search.</div>
             )}
-          </div>
+          </section>
 
-          <div className="mt-8 grid gap-8 lg:grid-cols-2">
-            <section>
-              <SectionTitle
-                action={
-                  <Select value={range} onValueChange={setRange}>
-                    <SelectTrigger className="h-7 w-[105px] text-[10px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="6 months">6 months</SelectItem>
-                      <SelectItem value="This year">This year</SelectItem>
-                      <SelectItem value="This quarter">This quarter</SelectItem>
-                    </SelectContent>
-                  </Select>
-                }
-              >
+          <section className="grid gap-5 lg:grid-cols-2">
+            <div className="rounded-xl border border-border/80 bg-card p-5 shadow-[0_2px_12px_rgba(38,32,24,0.035)]">
+              <SectionTitle action={<Select value={range} onValueChange={setRange}><SelectTrigger className="h-7 w-[105px] text-[10px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="6 months">6 months</SelectItem><SelectItem value="This year">This year</SelectItem><SelectItem value="This quarter">This quarter</SelectItem></SelectContent></Select>}>
                 Budget utilization
               </SectionTitle>
-
-              <div className="border-y border-border py-4">
-                <div className="mb-2 flex items-baseline gap-2">
-                  <strong className="text-[23px]">65%</strong>
-                  <span className="text-[10px] text-muted-foreground">
-                    of allocated budget
-                  </span>
-                </div>
-
-                <div className="h-[170px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={budgetSeries}
-                      margin={{ top: 8, right: 2, left: -26, bottom: 0 }}
-                    >
-                      <defs>
-                        <linearGradient
-                          id="planned-fill"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop
-                            offset="0%"
-                            stopColor="var(--color-chart-3)"
-                            stopOpacity={0.16}
-                          />
-                          <stop
-                            offset="100%"
-                            stopColor="var(--color-chart-3)"
-                            stopOpacity={0}
-                          />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid
-                        stroke="var(--color-border)"
-                        vertical={false}
-                      />
-                      <XAxis
-                        dataKey="month"
-                        tickLine={false}
-                        axisLine={false}
-                        tick={{
-                          fontSize: 10,
-                          fill: "var(--color-muted-foreground)",
-                        }}
-                      />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tick={{
-                          fontSize: 9,
-                          fill: "var(--color-muted-foreground)",
-                        }}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          background: "var(--color-popover)",
-                          border: "1px solid var(--color-border)",
-                          borderRadius: 4,
-                          fontSize: 11,
-                        }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="planned"
-                        name="Planned"
-                        stroke="var(--color-chart-3)"
-                        fill="url(#planned-fill)"
-                        strokeWidth={1.5}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="actual"
-                        name="Actual"
-                        stroke="var(--color-primary)"
-                        fill="transparent"
-                        strokeWidth={2}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-
-                <div className="mt-2 flex gap-4 text-[10px] text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <i className="h-2 w-2 rounded-full bg-chart-3" />
-                    Planned
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <i className="h-2 w-2 rounded-full bg-primary" />
-                    Actual
-                  </span>
-                </div>
+              <div className="mb-2 flex items-baseline gap-2"><strong className="text-[27px] font-semibold tracking-[-0.8px]">65%</strong><span className="text-[10px] text-muted-foreground">of allocated budget</span></div>
+              <div className="h-[190px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={budgetSeries} margin={{ top: 8, right: 4, left: -24, bottom: 0 }}>
+                    <defs><linearGradient id="planned-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--color-chart-3)" stopOpacity={0.2} /><stop offset="100%" stopColor="var(--color-chart-3)" stopOpacity={0} /></linearGradient></defs>
+                    <CartesianGrid stroke="var(--color-border)" vertical={false} />
+                    <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: "var(--color-muted-foreground)" }} />
+                    <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 9, fill: "var(--color-muted-foreground)" }} />
+                    <Tooltip contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 9, fontSize: 11 }} />
+                    <Area type="monotone" dataKey="planned" name="Planned" stroke="var(--color-chart-3)" fill="url(#planned-fill)" strokeWidth={1.8} />
+                    <Area type="monotone" dataKey="actual" name="Actual" stroke="var(--color-primary)" fill="transparent" strokeWidth={2.2} />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
-            </section>
+              <div className="mt-2 flex gap-4 text-[10px] text-muted-foreground"><span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-chart-3" />Planned</span><span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-primary" />Actual</span></div>
+            </div>
 
-            <section>
+            <div className="rounded-xl border border-border/80 bg-card p-5 shadow-[0_2px_12px_rgba(38,32,24,0.035)]">
               <SectionTitle>Task completion</SectionTitle>
-              <div className="border-y border-border py-4">
-                <div className="flex items-end justify-between">
-                  <div>
-                    <strong className="text-[23px]">78%</strong>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground">
-                      of tasks on track
-                    </p>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground">
-                    486 total tasks
-                  </span>
-                </div>
-
-                <div className="mt-5 flex h-3 w-full overflow-hidden rounded-sm">
-                  <span className="bg-primary" style={{ width: "55%" }} />
-                  <span className="bg-chart-2" style={{ width: "23%" }} />
-                  <span className="bg-secondary" style={{ width: "17%" }} />
-                  <span className="bg-chart-4" style={{ width: "5%" }} />
-                </div>
-
-                <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-2 text-[10px]">
-                  <div className="flex items-center gap-2">
-                    <i className="h-2 w-2 rounded-full bg-primary" />
-                    <span className="text-muted-foreground">Complete</span>
-                    <b className="ml-auto">267</b>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <i className="h-2 w-2 rounded-full bg-chart-2" />
-                    <span className="text-muted-foreground">In progress</span>
-                    <b className="ml-auto">112</b>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <i className="h-2 w-2 rounded-full bg-secondary" />
-                    <span className="text-muted-foreground">To do</span>
-                    <b className="ml-auto">83</b>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <i className="h-2 w-2 rounded-full bg-chart-4" />
-                    <span className="text-muted-foreground">At risk</span>
-                    <b className="ml-auto">24</b>
-                  </div>
-                </div>
+              <div className="flex items-end justify-between"><div><strong className="text-[27px] font-semibold tracking-[-0.8px]">78%</strong><p className="mt-0.5 text-[10px] text-muted-foreground">of tasks on track</p></div><span className="text-[10px] text-muted-foreground">486 total tasks</span></div>
+              <div className="mt-6 flex h-3 w-full overflow-hidden rounded-full bg-secondary"><span className="bg-primary" style={{ width: "55%" }} /><span className="bg-chart-2" style={{ width: "23%" }} /><span className="bg-secondary" style={{ width: "17%" }} /><span className="bg-chart-4" style={{ width: "5%" }} /></div>
+              <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-3 text-[10px]">
+                {[{ label: "Complete", count: "267", color: "bg-primary" }, { label: "In progress", count: "112", color: "bg-chart-2" }, { label: "To do", count: "83", color: "bg-muted-foreground/30" }, { label: "At risk", count: "24", color: "bg-chart-4" }].map((item) => <div key={item.label} className="flex items-center gap-2"><i className={`h-2 w-2 rounded-full ${item.color}`} /><span className="text-muted-foreground">{item.label}</span><b className="ml-auto">{item.count}</b></div>)}
               </div>
-            </section>
-          </div>
-        </section>
+              <div className="mt-6 rounded-lg bg-secondary/65 p-3"><p className="text-[10px] leading-relaxed text-muted-foreground">Task metrics are illustrative sample data for this prototype.</p></div>
+            </div>
+          </section>
+        </div>
 
-        <aside className="grid content-start gap-8 sm:grid-cols-2 xl:grid-cols-1">
-          <section>
-            <SectionTitle
-              action={
-                <button
-                  onClick={() => toast.info("Showing all activity")}
-                  className="text-xs text-primary hover:underline"
-                >
-                  View all
-                </button>
-              }
-            >
-              Recent activity
-            </SectionTitle>
-
-            <div className="border-y border-border">
-              {filteredActivity.map((item) => (
-                <div
-                  key={item.who + item.action}
-                  className="flex gap-3 border-b border-border/70 py-3.5 last:border-0"
-                >
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-secondary text-[10px] font-semibold">
-                    {item.initials}
-                  </span>
-                  <div className="min-w-0 flex-1 text-[11px] leading-relaxed">
-                    <b>{item.who}</b> {item.action}
-                    <div className="truncate text-muted-foreground">
-                      {item.event}
-                    </div>
-                  </div>
-                  <span className="shrink-0 text-[9px] text-muted-foreground">
-                    {item.time}
-                  </span>
-                </div>
-              ))}
+        <aside className="grid content-start gap-5 sm:grid-cols-2 2xl:grid-cols-1">
+          <section className="rounded-xl border border-border/80 bg-card p-5 shadow-[0_2px_12px_rgba(38,32,24,0.035)]">
+            <SectionTitle action={<button onClick={() => toast.info("Showing all activity")} className="text-[10px] font-semibold text-primary hover:underline">View all</button>}>Recent activity</SectionTitle>
+            <div className="divide-y divide-border/70">
+              {filteredActivity.slice(0, 5).map((item) => <div key={item.who + item.action} className="flex gap-3 py-3 first:pt-0 last:pb-0"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-secondary text-[10px] font-semibold">{item.initials}</span><div className="min-w-0 flex-1 text-[11px] leading-relaxed"><b>{item.who}</b> {item.action}<div className="truncate text-muted-foreground">{item.event}</div></div><span className="shrink-0 text-[9px] text-muted-foreground">{item.time}</span></div>)}
             </div>
           </section>
 
-          <section>
-            <SectionTitle
-              action={
-                <Link
-                  to="/app/$module"
-                  params={{ module: "planning" }}
-                  className="text-xs text-primary hover:underline"
-                >
-                  Task list ↗
-                </Link>
-              }
-            >
-              Coming up
-            </SectionTitle>
-
-            <div className="space-y-3 border-y border-border py-2">
-              {tasks
-                .filter((task) => task.status !== "Done")
-                .slice(0, 3)
-                .map((task) => (
-                  <div key={task.title} className="flex gap-3 py-2">
-                    <div
-                      className={`mt-0.5 h-4 w-4 shrink-0 rounded-[4px] border ${
-                        task.priority === "High"
-                          ? "border-primary"
-                          : "border-border"
-                      }`}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[11px] font-medium leading-snug">
-                        {task.title}
-                      </div>
-                      <div className="mt-1 truncate text-[10px] text-muted-foreground">
-                        {task.event} · {task.owner}
-                      </div>
-                    </div>
-                    <span className="shrink-0 text-[10px] text-muted-foreground">
-                      {task.due}
-                    </span>
-                  </div>
-                ))}
+          <section className="rounded-xl border border-border/80 bg-card p-5 shadow-[0_2px_12px_rgba(38,32,24,0.035)]">
+            <SectionTitle action={<Link to="/app/$module" params={{ module: "planning" }} className="text-[10px] font-semibold text-primary hover:underline">Task list ↗</Link>}>Coming up</SectionTitle>
+            <div className="space-y-3">
+              {tasks.filter((task) => task.status !== "Done").slice(0, 4).map((task) => <div key={task.title} className="flex gap-3"><span className={`mt-0.5 h-4 w-4 shrink-0 rounded border ${task.priority === "High" ? "border-primary bg-primary/10" : "border-border"}`} /><div className="min-w-0 flex-1"><div className="text-[11px] font-medium leading-snug">{task.title}</div><div className="mt-1 truncate text-[10px] text-muted-foreground">{task.event} · {task.owner}</div></div><span className="shrink-0 text-[10px] text-muted-foreground">{task.due}</span></div>)}
             </div>
           </section>
 
-          <section className="sm:col-span-2 xl:col-span-1">
-            <SectionTitle>
-              Needs attention{" "}
-              <Badge
-                variant="outline"
-                className="ml-1 h-5 px-1.5 text-[9px]"
-              >
-                3
-              </Badge>
-            </SectionTitle>
-
-            <div className="border-y border-border">
-              <AlertRow
-                title="Budget approval requested"
-                detail="Northstar Product Summit · Scenic"
-                label="Review"
-              />
-              <AlertRow
-                title="Resource conflict detected"
-                detail="Common Ground Festival · Main stage"
-                label="Resolve"
-              />
-              <AlertRow
-                title="Insurance certificate expiring"
-                detail="Goodway Guest Travel · Nov 28"
-                label="View"
-              />
+          <section className="rounded-xl border border-border/80 bg-card p-5 shadow-[0_2px_12px_rgba(38,32,24,0.035)] sm:col-span-2 2xl:col-span-1">
+            <SectionTitle>Needs attention <Badge variant="outline" className="ml-1 h-5 px-1.5 text-[9px]">3</Badge></SectionTitle>
+            <div className="divide-y divide-border/70">
+              <AlertRow title="Budget approval requested" detail="Northstar Product Summit · Scenic" label="Review" />
+              <AlertRow title="Resource conflict detected" detail="Common Ground Festival · Main stage" label="Resolve" />
+              <AlertRow title="Insurance certificate expiring" detail="Goodway Guest Travel · Nov 28" label="View" />
             </div>
+            <p className="mt-3 text-[9px] text-muted-foreground">Alerts are simulated prototype content.</p>
           </section>
         </aside>
       </div>
-    </>
+    </div>
   );
 }
 
