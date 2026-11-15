@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import type { ElementType, ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Activity,
@@ -266,7 +267,7 @@ export function AppShell({
                 Your season, in view
               </div>
               <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
-                5 events are moving this quarter. Keep the details close.
+                Your upcoming events, teams and deadlines in one place.
               </p>
             </div>
           )}
@@ -364,7 +365,7 @@ export function AppShell({
                     <p className="border-l-2 border-primary pl-3 leading-relaxed">
                       <b>Budget review due</b>
                       <span className="block text-muted-foreground">
-                        Northstar Summit · 2 approvals await you
+                        Common Ground Festival · 2 approvals await you
                       </span>
                     </p>
                     <p className="border-l-2 border-chart-2 pl-3 leading-relaxed">
@@ -376,7 +377,7 @@ export function AppShell({
                     <p className="border-l-2 border-border pl-3 leading-relaxed">
                       <b>New floor plan uploaded</b>
                       <span className="block text-muted-foreground">
-                        Fieldnotes Dinner · 2 hours ago
+                        Goodwood Forum · 2 hours ago
                       </span>
                     </p>
                   </div>
@@ -454,7 +455,7 @@ function PageHeading({
   eyebrow?: string;
   title: string;
   description?: string;
-  action?: React.ReactNode;
+  action?: ReactNode;
 }) {
   return (
     <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
@@ -488,7 +489,7 @@ function Stat({
   label: string;
   value: string;
   delta: string;
-  icon: React.ElementType;
+  icon: ElementType;
   tone?: string;
 }) {
   return (
@@ -515,8 +516,8 @@ function SectionTitle({
   children,
   action,
 }: {
-  children: React.ReactNode;
-  action?: React.ReactNode;
+  children: ReactNode;
+  action?: ReactNode;
 }) {
   return (
     <div className="mb-4 flex items-center justify-between gap-4">
@@ -526,10 +527,32 @@ function SectionTitle({
   );
 }
 
+function parseEventDate(date: string) {
+  // Demo dates are stored as values such as "Nov 19, 2026".
+  return new Date(`${date} 00:00:00`);
+}
+
+function isUpcomingEvent(event: (typeof events)[number]) {
+  const eventDate = parseEventDate(event.date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return eventDate >= today && event.status !== "Completed";
+}
+
+function formatToday() {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date());
+}
+
 function Overview({ search }: { search: string }) {
   const [range, setRange] = useState("6 months");
 
-  const filteredEvents = events.filter((event) =>
+  const upcomingEvents = events.filter(isUpcomingEvent);
+  const filteredEvents = upcomingEvents.filter((event) =>
     `${event.name} ${event.type} ${event.venue}`
       .toLowerCase()
       .includes(search.toLowerCase()),
@@ -544,16 +567,16 @@ function Overview({ search }: { search: string }) {
   return (
     <>
       <PageHeading
-        eyebrow="Thursday, October 15, 2026 · Good morning, Maya"
+        eyebrow={`${formatToday()} · Good morning, Maya`}
         title="Your work, in good order."
         description="A clear view of what's coming up, what needs attention, and where your team is moving."
         action={<NewEventDialog />}
       />
 
       <section className="grid grid-cols-2 gap-y-5 border-y border-border py-5 sm:grid-cols-3 lg:grid-cols-6">
-        <Stat label="Total events" value="12" delta="4 active" icon={CalendarDays} />
-        <Stat label="Upcoming" value="5" delta="Next 60 days" icon={CalendarDays} tone="accent" />
-        <Stat label="Active tasks" value="38" delta="7 due this week" icon={ClipboardList} />
+        <Stat label="Total events" value={String(events.length)} delta="In this demo" icon={CalendarDays} />
+        <Stat label="Upcoming" value={String(upcomingEvents.length)} delta="Future events" icon={CalendarDays} tone="accent" />
+        <Stat label="Active tasks" value={String(tasks.filter((task) => task.status !== "Done").length)} delta="From sample task list" icon={ClipboardList} />
         <Stat label="Total budget" value="$942k" delta="Across active events" icon={Wallet} />
         <Stat label="Actual expenses" value="$614k" delta="65% utilized" icon={Wallet} tone="accent" />
         <Stat label="Approvals" value="3" delta="Need your review" icon={Activity} />
@@ -612,6 +635,11 @@ function Overview({ search }: { search: string }) {
                 </div>
               </div>
             ))}
+            {filteredEvents.length === 0 && (
+              <p className="px-3 py-8 text-center text-xs text-muted-foreground">
+                No upcoming events match your search.
+              </p>
+            )}
           </div>
 
           <div className="mt-8 grid gap-8 lg:grid-cols-2">
@@ -884,7 +912,7 @@ function Overview({ search }: { search: string }) {
               />
               <AlertRow
                 title="Insurance certificate expiring"
-                detail="Goodway Guest Travel · Oct 28"
+                detail="Goodway Guest Travel · Nov 28"
                 label="View"
               />
             </div>
@@ -927,11 +955,15 @@ function AlertRow({
 
 function StatusBadge({ status }: { status: string }) {
   const variant =
-    status === "At risk" || status === "Review due"
+    status === "At risk" || status === "Review due" || status === "Conflict"
       ? "destructive"
       : status === "Confirmed" ||
           status === "Preferred" ||
-          status === "Done"
+          status === "Done" ||
+          status === "Completed" ||
+          status === "Active" ||
+          status === "Resolved" ||
+          status === "Current"
         ? "secondary"
         : "outline";
 
@@ -1107,7 +1139,7 @@ function ModulePage({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {["All", "In planning", "Confirmed", "At risk"].map((s) => (
+                  {["All", "In planning", "Confirmed", "At risk", "Completed"].map((s) => (
                     <SelectItem key={s} value={s}>
                       {s} status
                     </SelectItem>
@@ -1150,10 +1182,12 @@ function ModulePage({
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {events
-                .filter((event) =>
-                  `${event.name} ${event.type}`
-                    .toLowerCase()
-                    .includes(search.toLowerCase()),
+                .filter(
+                  (event) =>
+                    (filter === "All" || event.status === filter) &&
+                    `${event.name} ${event.type} ${event.venue}`
+                      .toLowerCase()
+                      .includes(search.toLowerCase()),
                 )
                 .map((event, index) => (
                   <div
@@ -1236,6 +1270,7 @@ function ModulePage({
                     {tasks.map(
                       (task, index) =>
                         taskState[index] === status &&
+                        (filter === "All" || taskState[index] === filter) &&
                         `${task.title} ${task.event}`
                           .toLowerCase()
                           .includes(search.toLowerCase()) && (
@@ -1425,7 +1460,7 @@ function DataTable({
                       : "text-muted-foreground"
                   }`}
                 >
-                  {j === headers.length - 1 || headers[j] === "Status" ? (
+                  {["Status", "Outcome", "Label"].includes(headers[j]) ? (
                     <StatusBadge status={cell} />
                   ) : (
                     cell
@@ -1747,14 +1782,14 @@ function GenericModule({
             <p className="text-[10px] text-muted-foreground">
               Northstar Product Summit
             </p>
-            <p className="mt-1 text-xs font-semibold">Load-in · 9 days</p>
+            <p className="mt-1 text-xs font-semibold">Production checks · Dec 05</p>
           </div>
           <div className="border-l-2 border-chart-2 pl-3">
             <p className="text-[10px] text-muted-foreground">
               Goodwood Partner Forum
             </p>
             <p className="mt-1 text-xs font-semibold">
-              Final checks · 35 days
+              Final checks · Nov 19
             </p>
           </div>
           <div className="border-l-2 border-chart-4 pl-3">
