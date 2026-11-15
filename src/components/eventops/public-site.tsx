@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -45,6 +45,14 @@ const photos = {
   venue:
     "https://www.skilevents.com/public/uploads/blog/e23e6d10d1851da7ae9ef9153194a965.webp",
 };
+
+const heroSlides = [
+  { image: photos.conference, label: "Conferences & summits", alt: "Professional conference in India" },
+  { image: photos.wedding, label: "Weddings & celebrations", alt: "Indian wedding celebration venue" },
+  { image: photos.festival, label: "Festivals & live experiences", alt: "Indian college festival and live event" },
+  { image: photos.exhibition, label: "Exhibitions & trade shows", alt: "Business exhibition in India" },
+  { image: photos.venue, label: "Venues & gatherings", alt: "Professionally arranged event venue" },
+];
 
 type PublicNavItem = "Platform" | "Solutions" | "Pricing" | "About" | "Contact";
 
@@ -172,6 +180,18 @@ function Eyebrow({ children }: { children: ReactNode }) {
 }
 
 function Home() {
+  const [activeHeroSlide, setActiveHeroSlide] = useState(0);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const intervalId = window.setInterval(() => {
+      setActiveHeroSlide((current) => (current + 1) % heroSlides.length);
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
+
   const highlights = [
     { icon: CalendarDays, title: "Plan with context", body: "Keep briefs, timelines, milestones and event details connected." },
     { icon: ClipboardList, title: "Organize the work", body: "Give every task an owner, deadline and clear next step." },
@@ -220,12 +240,52 @@ function Home() {
             </div>
             <div className="relative">
               <div className="absolute -inset-5 rounded-full bg-primary/10 blur-3xl" />
-              <div className="relative overflow-hidden rounded-sm border border-[#b88b5a]/45 bg-[#fffaf1] p-2 shadow-[0_22px_55px_rgba(75,49,29,0.18)]">
-                <img src={photos.conference} alt="Delegates attending a professional conference in India" className="h-[300px] w-full object-cover md:h-[440px]" />
-                <div className="absolute bottom-6 left-6 right-6 grid grid-cols-3 gap-2">
+              <div
+                className="relative overflow-hidden rounded-sm border border-[#b88b5a]/45 bg-[#fffaf1] p-2 shadow-[0_22px_55px_rgba(75,49,29,0.18)]"
+                aria-label="A rotating showcase of Indian event formats"
+              >
+                <div className="relative h-[300px] overflow-hidden bg-[#e8dfd1] md:h-[440px]">
+                  {heroSlides.map((slide, index) => (
+                    <img
+                      key={slide.label}
+                      src={slide.image}
+                      alt={slide.alt}
+                      loading={index === 0 ? "eager" : "lazy"}
+                      fetchPriority={index === 0 ? "high" : "auto"}
+                      className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-in-out ${
+                        activeHeroSlide === index ? "opacity-100" : "opacity-0"
+                      }`}
+                    />
+                  ))}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#211b17]/65 via-transparent to-[#211b17]/10" />
+                  <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4 md:bottom-7 md:left-7 md:right-7">
+                    <div className="min-w-0 text-white">
+                      <p className="text-[9px] font-medium uppercase tracking-[0.18em] text-white/75">Made for every gathering</p>
+                      <p className="mt-1 text-base font-semibold tracking-tight md:text-xl">
+                        {heroSlides[activeHeroSlide].label}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1.5" aria-label="Hero slideshow controls">
+                      {heroSlides.map((slide, index) => (
+                        <button
+                          key={slide.label}
+                          type="button"
+                          onClick={() => setActiveHeroSlide(index)}
+                          aria-label={`Show ${slide.label}`}
+                          aria-current={activeHeroSlide === index ? "true" : undefined}
+                          className={`h-1.5 rounded-full transition-all duration-300 ${
+                            activeHeroSlide === index ? "w-7 bg-white" : "w-1.5 bg-white/55 hover:bg-white/85"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 pt-2">
                   {[["01", "Plan"], ["02", "Coordinate"], ["03", "Deliver"]].map(([number, label]) => (
-                    <div key={number} className="border border-[#e8d4b7]/35 bg-[#211b17]/65 p-3 text-white backdrop-blur">
-                      <p className="text-[9px] text-white/65">{number}</p><p className="mt-1 text-xs font-medium">{label}</p>
+                    <div key={number} className="border border-[#e8d4b7]/60 bg-[#f3eee3] px-3 py-2.5">
+                      <p className="text-[9px] text-[#87603f]">{number}</p>
+                      <p className="mt-1 text-xs font-semibold text-[#342a22]">{label}</p>
                     </div>
                   ))}
                 </div>
