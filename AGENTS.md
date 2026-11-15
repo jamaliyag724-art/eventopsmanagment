@@ -28,3 +28,7 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+<!-- AGENT-MEMORY:BEGIN -->
+- Keep public pages as distinct route leaves with page-specific metadata, and render operational modules through a shared `/app` workspace shell to keep navigation and controls consistent.
+<!-- AGENT-MEMORY:END -->
