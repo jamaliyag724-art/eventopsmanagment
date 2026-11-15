@@ -82,7 +82,7 @@ function PublicNav({ active }: { active?: PublicNavItem }) {
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/95 backdrop-blur">
       <div className="mx-auto flex h-[70px] max-w-[1320px] items-center justify-between px-5 md:px-8">
         <Brand />
-        <nav className="hidden items-center gap-8 md:flex" aria-label="Main navigation">
+        <nav className="hidden items-center gap-8 lg:flex" aria-label="Main navigation">
           {links.map((item) => (
             <Link
               key={item.label}
@@ -95,7 +95,7 @@ function PublicNav({ active }: { active?: PublicNavItem }) {
             </Link>
           ))}
         </nav>
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-3 lg:flex">
           <Link to="/login" className="px-3 py-2 text-[13px] font-medium text-foreground hover:text-primary">
             Sign in
           </Link>
@@ -105,7 +105,7 @@ function PublicNav({ active }: { active?: PublicNavItem }) {
         </div>
         <button
           type="button"
-          className="grid h-10 w-10 place-items-center rounded-md border border-border md:hidden"
+          className="grid h-10 w-10 place-items-center rounded-md border border-border lg:hidden"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
           aria-expanded={mobileOpen}
@@ -114,7 +114,7 @@ function PublicNav({ active }: { active?: PublicNavItem }) {
         </button>
       </div>
       {mobileOpen && (
-        <nav className="border-t border-border bg-background px-5 py-4 md:hidden" aria-label="Mobile navigation">
+        <nav className="border-t border-border bg-background px-5 py-4 lg:hidden" aria-label="Mobile navigation">
           <div className="flex flex-col gap-1">
             {links.map((item) => (
               <Link key={item.label} to={item.to} onClick={() => setMobileOpen(false)} className="rounded-md px-3 py-3 text-sm hover:bg-secondary">
@@ -135,7 +135,7 @@ function PublicNav({ active }: { active?: PublicNavItem }) {
 function PublicFooter() {
   return (
     <footer className="border-t border-border bg-background">
-      <div className="mx-auto grid max-w-[1320px] gap-10 px-5 py-12 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:px-8 md:py-14">
+      <div className="mx-auto grid max-w-[1320px] gap-8 px-5 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] md:px-8 md:py-14">
         <div>
           <Brand />
           <p className="mt-4 max-w-xs text-xs leading-relaxed text-muted-foreground">
@@ -215,10 +215,10 @@ function Home() {
           />
           <div className="pointer-events-none absolute -right-24 -top-28 -z-10 h-[420px] w-[420px] rounded-full border border-[#b88b5a]/20" />
           <div className="pointer-events-none absolute -right-12 -top-16 -z-10 h-[300px] w-[300px] rounded-full border border-[#b88b5a]/20" />
-          <div className="mx-auto grid max-w-[1320px] items-center gap-10 px-5 py-14 md:grid-cols-[0.92fr_1.08fr] md:px-8 md:py-20">
+          <div className="mx-auto grid max-w-[1320px] items-center gap-10 px-5 py-12 md:px-8 md:py-16 lg:grid-cols-[0.92fr_1.08fr] lg:gap-12 lg:py-20">
             <div className="relative z-10">
               <Eyebrow>Rooted in India. Built for every gathering.</Eyebrow>
-              <h1 className="mt-5 max-w-[650px] text-[42px] font-semibold leading-[1.04] tracking-[-1.7px] md:text-[64px]">
+              <h1 className="mt-5 max-w-[650px] text-[42px] font-semibold leading-[1.04] tracking-[-1.7px] sm:text-[50px] md:text-[56px] lg:text-[64px]">
                 Make every moving part <span className="text-primary">work as one.</span>
               </h1>
               <p className="mt-6 max-w-[540px] text-sm leading-7 text-muted-foreground md:text-base">
@@ -244,7 +244,7 @@ function Home() {
                 className="relative overflow-hidden rounded-sm border border-[#b88b5a]/45 bg-[#fffaf1] p-2 shadow-[0_22px_55px_rgba(75,49,29,0.18)]"
                 aria-label="A rotating showcase of Indian event formats"
               >
-                <div className="relative h-[300px] overflow-hidden bg-[#e8dfd1] md:h-[440px]">
+                <div className="relative h-[300px] overflow-hidden bg-[#e8dfd1] sm:h-[360px] md:h-[400px] lg:h-[440px]">
                   {heroSlides.map((slide, index) => (
                     <img
                       key={slide.label}
