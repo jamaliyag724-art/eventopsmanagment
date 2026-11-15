@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Activity, AlertTriangle, ArrowDownToLine, Filter, Plus, Sparkles, Users, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -88,6 +88,15 @@ function Panel({ children, className = "" }: { children: React.ReactNode; classN
 
 export function ModuleWorkspace({ module, search = "" }: { module: string; search?: string }) {
   const [rows, setRows] = useState<Row[]>(() => seed[module] ?? []);
+  // Re-load the correct module dataset whenever navigation changes the module.
+  useEffect(() => {
+    setRows(seed[module] ?? []);
+    setFilter("All");
+    setView(module === "planning" ? "Board" : "Table");
+    setDetail(null);
+    setTab("Overview");
+    setDraft({ name: "", detail: "", owner: "", date: "", priority: "Medium" });
+  }, [module]);
   const [filter, setFilter] = useState("All");
   const [view, setView] = useState(module === "planning" ? "Board" : "Table");
   const [dialog, setDialog] = useState(false);
@@ -108,7 +117,33 @@ export function ModuleWorkspace({ module, search = "" }: { module: string; searc
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">{summaryCards.map(([label, value, note], i) => <Panel key={label}><div className="flex items-start justify-between"><p className="text-[11px] text-muted-foreground">{label}</p><span className="rounded-lg bg-secondary p-2 text-muted-foreground">{[<Activity className="h-4 w-4"/>,<Wallet className="h-4 w-4"/>,<Users className="h-4 w-4"/>][i]}</span></div><div className="mt-3 flex flex-wrap items-baseline justify-between gap-2"><strong className="text-[25px] font-semibold tracking-tight">{value}</strong><span className="text-[10px] text-muted-foreground">{note}</span></div></Panel>)}</div>
     {module === "planning" ? <>
       <div className="flex flex-wrap items-center justify-between gap-3"><Tabs value={view} onValueChange={setView}><TabsList><TabsTrigger value="Board">Board</TabsTrigger><TabsTrigger value="List">List</TabsTrigger><TabsTrigger value="Calendar">Calendar</TabsTrigger></TabsList></Tabs><div className="flex items-center gap-2"><Select value={filter} onValueChange={setFilter}><SelectTrigger className="h-9 w-36 text-xs"><Filter className="mr-2 h-3.5 w-3.5"/><SelectValue/></SelectTrigger><SelectContent>{["All","To do","In progress","Done"].map(s=><SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div></div>
-      {view === "Board" ? <div className="grid gap-4 lg:grid-cols-3">{["To do","In progress","Done"].map(status => <Panel key={status} className="min-h-64 bg-secondary/25"><div className="mb-4 flex items-center justify-between"><h3 className="text-sm font-semibold">{status}</h3><Badge variant="secondary">{filtered.filter(r=>r.status===status).length}</Badge></div><div className="space-y-3">{filtered.filter(r=>r.status===status).map(r=><button key={r.id} onClick={()=>setDetail(r)} className="w-full rounded-lg border border-border bg-card p-3 text-left transition hover:border-primary/50"><p className="text-xs font-semibold leading-snug">{r.name}</p><p className="mt-1.5 text-[10px] text-muted-foreground">{r.detail}</p><div className="mt-3 flex items-center justify-between"><span className="text-[10px] text-muted-foreground">{r.owner} · {r.date}</span><Pill>{r.priority}</Pill></div></button>)}</div></Panel>)}</div> : view === "Calendar" ? <Panel><div className="mb-4 flex items-center justify-between"><h3 className="text-sm font-semibold">November 2026 · Task calendar</h3><span className="text-[10px] text-muted-foreground">Sample due dates</span></div><div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg border bg-border">{["Sun","Mon","Tue","Wed","Thu","Fri","Sat",...Array.from({length:35},(_,i)=>String(i+1))].map((v,i)=><div key={i} className={`min-h-16 bg-card p-2 ${i<7?"min-h-8 bg-secondary/70":""}`}><span className="text-[10px] text-muted-foreground">{v}</span>{i===22&&<div className="mt-1 rounded bg-primary/10 px-1 py-0.5 text-[9px] text-primary">2 tasks due</div>}</div>)}</div></Panel> : <Table headers={visibleColumns} rows={filtered.map(rowCells)} onSelect={i=>setDetail(filtered[i])}/ >}
+      {view === "Board" ? <div className="grid gap-4 lg:grid-cols-3">{["To do","In progress","Done"].map(status => <Panel key={status} className="min-h-64 bg-secondary/25"><div className="mb-4 flex items-center justify-between"><h3 className="text-sm font-semibold">{status}</h3><Badge variant="secondary">{filtered.filter(r=>r.status===status).length}</Badge></div><div className="space-y-3">{filtered.filter(r=>r.status===status).map(r=><button key={r.id} onClick={()=>setDetail(r)} className="w-full rounded-lg border border-border bg-card p-3 text-left transition hover:border-primary/50"><p className="text-xs font-semibold leading-snug">{r.name}</p><p className="mt-1.5 text-[10px] text-muted-foreground">{r.detail}</p><div className="mt-3 flex items-center justify-between"><span className="text-[10px] text-muted-foreground">{r.owner} · {r.date}</span><Pill>{r.priority}</Pill></div></button>)}</div></Panel>)}</div> : view === "Calendar" ? <Panel>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-sm font-semibold">November 2026 · Task calendar</h3>
+          <span className="text-[10px] text-muted-foreground">Task due dates</span>
+        </div>
+        <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-border bg-border">
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
+            <div key={day} className="min-h-8 bg-secondary/70 p-2 text-[10px] text-muted-foreground">{day}</div>
+          ))}
+          {calendarCells(filtered).map((cell, i) => (
+            <div key={i} className={`min-h-20 bg-card p-2 max-sm:min-h-16 ${cell ? "" : "bg-secondary/30"}`}>
+              {cell && <>
+                <span className="text-[10px] text-muted-foreground">{cell.day}</span>
+                <div className="mt-1 space-y-1">
+                  {cell.tasks.map(task => (
+                    <button key={task.id} onClick={() => setDetail(task)}
+                      className="block w-full truncate rounded bg-primary/10 px-1.5 py-1 text-left text-[9px] text-primary hover:bg-primary/15"
+                      title={task.name}>
+                      {task.name}
+                    </button>
+                  ))}
+                </div>
+              </>}
+            </div>
+          ))}
+        </div>
+      </Panel> : <Table headers={visibleColumns} rows={filtered.map(rowCells)} onSelect={i=>setDetail(filtered[i])}/> rows={filtered.map(rowCells)} onSelect={i=>setDetail(filtered[i])}/ >}
     </> : <>
       {(module === "finance" || module === "analytics") && <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]"><Panel><div className="mb-4 flex items-center justify-between"><h3 className="text-sm font-semibold">Portfolio spend trend</h3><Badge variant="outline">Illustrative data</Badge></div><div className="h-[230px]"><ResponsiveContainer width="100%" height="100%"><AreaChart data={budgetSeries}><defs><linearGradient id="moduleSpend" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--color-primary)" stopOpacity={.22}/><stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0}/></linearGradient></defs><CartesianGrid stroke="var(--color-border)" vertical={false}/><XAxis dataKey="month" tickLine={false} axisLine={false}/><YAxis tickLine={false} axisLine={false}/><Tooltip/><Area dataKey="actual" name="Actual" stroke="var(--color-primary)" fill="url(#moduleSpend)" strokeWidth={2}/><Area dataKey="planned" name="Planned" stroke="var(--color-chart-3)" fill="transparent" strokeWidth={1.5}/></AreaChart></ResponsiveContainer></div></Panel><Panel><h3 className="mb-4 text-sm font-semibold">Allocation by category</h3><div className="space-y-5">{[["Venue & site",82,"$184,200"],["Production",68,"$156,400"],["Food & beverage",55,"$118,600"],["Travel & staffing",38,"$74,300"]].map(([name,pct,amount])=><div key={String(name)}><div className="mb-1.5 flex justify-between text-[11px]"><span>{name}</span><span className="text-muted-foreground">{amount}</span></div><Progress value={Number(pct)} className="h-1.5"/></div>)}</div></Panel></div>}
       {module === "intelligence" && <Panel className="border-primary/20 bg-primary/[0.035]"><div className="flex items-center gap-2 text-sm font-semibold"><Sparkles className="h-4 w-4 text-primary"/>Portfolio brief <Badge variant="outline">Demo AI</Badge></div><p className="mt-3 max-w-3xl text-xs leading-relaxed text-muted-foreground">Across the sample portfolio, two budgets are trending above early estimates. Three production tasks need an owner this week, and one venue hold is approaching its review date. These are illustrative signals, not live AI analysis.</p><div className="mt-4 grid gap-3 sm:grid-cols-3">{["Review revised scenic estimate","Confirm festival load-in crew","Extend Glasshouse venue hold"].map((s,i)=><div key={s} className="rounded-lg border border-border bg-card p-3"><span className="text-[10px] text-muted-foreground">Suggested check 0{i+1}</span><p className="mt-1 text-xs font-medium">{s}</p></div>)}</div></Panel>}
@@ -123,5 +158,27 @@ export function ModuleWorkspace({ module, search = "" }: { module: string; searc
     <Dialog open={!!detail} onOpenChange={o=>!o&&setDetail(null)}><DialogContent className="sm:max-w-[500px]"><DialogHeader><DialogTitle>{detail?.name}</DialogTitle><DialogDescription>{detail?.detail}</DialogDescription></DialogHeader>{detail&&<div className="space-y-3 py-2"><div className="grid grid-cols-2 gap-3">{[["Owner",detail.owner],["Date / timing",detail.date],["Priority / value",detail.priority],["Current status",detail.status]].map(([a,b])=><div key={a} className="rounded-lg bg-secondary/60 p-3"><p className="text-[10px] text-muted-foreground">{a}</p><p className="mt-1 text-xs font-semibold">{b}</p></div>)}</div><div><label className="mb-1 block text-[11px] font-medium">Update status</label><Select value={detail.status} onValueChange={v=>updateStatus(detail,v)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{["To do","In progress","Done","On track","Review due","Confirmed","Active","Complete","Resolved","Monitoring","In planning","Conflict","Current","Assigned","Preferred","Contracted"].map(s=><SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div></div>}<DialogFooter><Button variant="outline" onClick={()=>setDetail(null)}>Close</Button></DialogFooter></DialogContent></Dialog>
   </div>;
 }
+
+function calendarCells(rows: Row[]) {
+  const year = 2026;
+  const month = 10; // November
+  const firstWeekday = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cellCount = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
+
+  return Array.from({ length: cellCount }, (_, index) => {
+    const day = index - firstWeekday + 1;
+    if (day < 1 || day > daysInMonth) return null;
+
+    const dueTasks = rows.filter(row => {
+      const parsed = new Date(`${row.date}, ${year}`);
+      return !Number.isNaN(parsed.getTime())
+        && parsed.getMonth() === month
+        && parsed.getDate() === day;
+    });
+    return { day, tasks: dueTasks };
+  });
+}
+
 function Field({label,value,onChange,placeholder}:{label:string;value:string;onChange:(v:string)=>void;placeholder:string}) { return <div><label className="mb-1 block text-[11px] font-medium">{label}</label><Input value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} className="h-9 text-xs"/></div>; }
 function Table({headers,rows,onSelect}:{headers:string[];rows:string[][];onSelect:(index:number)=>void}) { return <div className="w-full overflow-x-auto rounded-xl border border-border"><table className="w-full min-w-[760px] border-collapse text-left"><thead><tr className="bg-secondary/65">{headers.map(h=><th key={h} className="px-3 py-3 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{h}</th>)}</tr></thead><tbody>{rows.map((r,i)=><tr key={`${r[0]}-${i}`} onClick={()=>onSelect(i)} className="cursor-pointer border-t border-border/70 transition hover:bg-secondary/30">{r.map((c,j)=><td key={j} className={`px-3 py-3.5 text-[11px] ${j===0?"font-semibold text-foreground":"text-muted-foreground"}`}>{j===4?<Pill>{c}</Pill>:c}</td>)}</tr>)}{!rows.length&&<tr><td colSpan={headers.length} className="px-4 py-12 text-center text-xs text-muted-foreground">No records match your search or filters.</td></tr>}</tbody></table></div>; }
