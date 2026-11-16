@@ -31,4 +31,5 @@ use the editor.
 
 <!-- AGENT-MEMORY:BEGIN -->
 - Keep public pages as distinct route leaves with page-specific metadata, and render operational modules through a shared `/app` workspace shell to keep navigation and controls consistent.
+- Keep policy content on distinct public route leaves with page-specific metadata; share presentation through one reusable legal-page view so each policy remains directly addressable.
 <!-- AGENT-MEMORY:END -->
