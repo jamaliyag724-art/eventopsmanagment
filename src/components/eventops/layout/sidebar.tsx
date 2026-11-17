@@ -46,14 +46,14 @@ export function Sidebar({ module, admin, collapsed, setCollapsed, mobileOpen, se
           <Link
             to="/"
             className="flex items-center gap-3 overflow-hidden"
-            aria-label="EventOps home"
+            aria-label="Utsav home"
           >
             <span className="brand-mark grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-primary text-primary-foreground">
-              <span className="text-sm font-semibold">e.</span>
+                <span className="text-sm font-semibold">उ.</span>
             </span>
             {!collapsed && (
               <span className="text-[18px] font-semibold tracking-[-0.3px]">
-                eventops
+                Utsav
               </span>
             )}
           </Link>
@@ -107,9 +107,11 @@ export function Sidebar({ module, admin, collapsed, setCollapsed, mobileOpen, se
             <DropdownMenuContent align="start" className="w-56">
               <DropdownMenuLabel>Organizations</DropdownMenuLabel>
               {[
-                "Morrow Events",
-                "Northstar Collective",
-                "Common Ground Co.",
+                "Ahmedabad Cultural Collective",
+                "Jaipur Wedding Studio",
+                "Mumbai Event Productions",
+                "Bengaluru Innovation Forum",
+                "Delhi Corporate Experiences",
               ].map((name) => (
                 <DropdownMenuItem
                   key={name}
