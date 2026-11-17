@@ -98,13 +98,13 @@ export function Topbar({ title, search, setSearch, setMobileOpen, notificationsO
                     <p className="border-l-2 border-primary pl-3 leading-relaxed">
                       <b>Budget review due</b>
                       <span className="block text-muted-foreground">
-                        Common Ground Festival · 2 approvals await you
+                      Mumbai Diwali Leadership Summit · 2 approvals await you
                       </span>
                     </p>
                     <p className="border-l-2 border-chart-2 pl-3 leading-relaxed">
                       <b>Vendor confirmed</b>
                       <span className="block text-muted-foreground">
-                        Goodwood Forum · Gather & Grain
+                        Bengaluru Innovation Forum · Aangan Hospitality
                       </span>
                     </p>
                     <p className="border-l-2 border-border pl-3 leading-relaxed">

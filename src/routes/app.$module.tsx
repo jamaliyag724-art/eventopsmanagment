@@ -5,8 +5,8 @@ import { modules } from "@/components/eventops/data";
 export const Route = createFileRoute("/app/$module")({
   head: ({ params }) => {
     const module = modules.find((item) => item.slug === params.module);
-    const title = `${module?.label ?? "Workspace"} | EventOps`;
-    const description = `Manage ${module?.label.toLowerCase() ?? "event operations"} in your EventOps workspace.`;
+    const title = `${module?.label ?? "Workspace"} | Utsav`;
+    const description = `Manage ${module?.label.toLowerCase() ?? "event operations"} in your Utsav workspace.`;
     return { meta: [
       { title }, { name: "description", content: description },
       { property: "og:title", content: title }, { property: "og:description", content: description },
