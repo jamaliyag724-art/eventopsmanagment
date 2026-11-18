@@ -1,7 +1,4 @@
-# Utsav website upgrade roadmap
-- [x] Preserve the existing routes, warm design direction, and workspace foundation.
-- [ ] Refine the shared visual system with an Indian editorial identity.
-- [ ] Upgrade homepage, feature, solution, pricing, about, and contact pages with locally hosted Indian event imagery.
-- [ ] Expand footer navigation and add privacy, terms, and cookie information pages without inventing company details.
-- [ ] Resolve carried-forward TypeScript errors in the workspace and affected modules.
-- [ ] Validate public pages, legal navigation, responsive layouts, and preview health.
+# Utsav public website polish
+- [x] Add consistent public-page transitions, scroll reveals, warm patterned backgrounds, and refined hover states.
+- [x] Preserve reduced-motion accessibility and keep the dashboard and Admin Panel unchanged.
+- [x] Run TypeScript checks and verify the production build diagnostics.

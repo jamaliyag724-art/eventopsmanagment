@@ -390,3 +390,96 @@
     animation: none !important;
   }
 }
+
+/* Public marketing polish: shared warm atmosphere, subtle movement and tactile controls. */
+@keyframes utsav-public-atmosphere {
+  from { background-position: center, 0 0, 26px 0; }
+  to { background-position: center, 14px 9px, 40px 9px; }
+}
+@keyframes utsav-public-page-enter {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.utsav-public-marketing {
+  animation: utsav-public-page-enter 440ms cubic-bezier(.2,.7,.2,1) both;
+}
+.utsav-public-marketing header nav a {
+  position: relative;
+  transition: color 200ms ease;
+}
+.utsav-public-marketing header nav a::after {
+  position: absolute;
+  right: 0;
+  bottom: -5px;
+  left: 0;
+  height: 1px;
+  content: "";
+  background: var(--color-primary);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 220ms ease;
+}
+.utsav-public-marketing header nav a:hover::after,
+.utsav-public-marketing header nav a:focus-visible::after {
+  transform: scaleX(1);
+}
+.utsav-public-marketing-main {
+  background-image: radial-gradient(ellipse at 88% 12%, color-mix(in oklab, var(--color-gold) 10%, transparent), transparent 38%);
+}
+.utsav-public-marketing-main > section:first-child {
+  background-image:
+    radial-gradient(ellipse at 82% 16%, color-mix(in oklab, var(--color-gold) 13%, transparent), transparent 44%),
+    repeating-linear-gradient(45deg, transparent 0 26px, color-mix(in oklab, var(--color-primary) 4%, transparent) 26px 27px, transparent 27px 53px),
+    repeating-linear-gradient(-45deg, transparent 0 26px, color-mix(in oklab, var(--color-gold) 6%, transparent) 26px 27px, transparent 27px 53px);
+  background-size: 100% 100%, 53px 53px, 53px 53px;
+  animation: utsav-public-atmosphere 34s ease-in-out infinite alternate;
+}
+.utsav-public-marketing-main > section:nth-of-type(3n + 2) {
+  background-image: linear-gradient(125deg, color-mix(in oklab, var(--color-gold) 5%, transparent), transparent 62%);
+}
+.utsav-public-marketing-main article {
+  transition: transform 240ms cubic-bezier(.2,.7,.2,1), border-color 240ms ease, box-shadow 240ms ease;
+}
+.utsav-public-marketing-main article:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in oklab, var(--color-primary) 32%, var(--color-border));
+  box-shadow: 0 12px 28px -20px color-mix(in oklab, var(--color-foreground) 32%, transparent);
+}
+.utsav-public-marketing-main article img {
+  transition: transform 560ms cubic-bezier(.2,.7,.2,1);
+}
+.utsav-public-marketing-main article:hover img {
+  transform: scale(1.025);
+}
+.utsav-public-marketing-main a.inline-flex,
+.utsav-public-marketing-main button {
+  transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+.utsav-public-marketing-main a.inline-flex:hover,
+.utsav-public-marketing-main button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.utsav-public-marketing-main a.inline-flex:active,
+.utsav-public-marketing-main button:active:not(:disabled) {
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .utsav-public-marketing,
+  .utsav-public-marketing-main > section:first-child {
+    animation: none !important;
+  }
+  .utsav-public-marketing header nav a,
+  .utsav-public-marketing header nav a::after,
+  .utsav-public-marketing-main article,
+  .utsav-public-marketing-main article img,
+  .utsav-public-marketing-main a.inline-flex,
+  .utsav-public-marketing-main button {
+    transition: none !important;
+  }
+  .utsav-public-marketing-main article:hover,
+  .utsav-public-marketing-main article:hover img,
+  .utsav-public-marketing-main a.inline-flex:hover,
+  .utsav-public-marketing-main button:hover:not(:disabled) {
+    transform: none !important;
+  }
+}

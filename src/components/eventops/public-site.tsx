@@ -318,10 +318,10 @@ function Home() {
 
   return (
     <>
-      <div className="utsav-public">
+      <div className="utsav-public utsav-public-marketing">
       <WelcomeExperience />
       <PublicNav />
-      <main ref={mainRef} className="utsav-public-main">
+      <main ref={mainRef} className="utsav-public-main utsav-public-marketing-main">
         <section data-utsav-reveal className="relative isolate overflow-hidden bg-[#f3eee3]">
           <div
             aria-hidden="true"
@@ -555,9 +555,9 @@ export function PublicContentPage({ page }: { page: "features" | "solutions" | "
   const icons = [ClipboardList, Wallet, Users, Clock3, Building2, ShieldCheck];
   return (
     <>
-      <div className="utsav-public">
+      <div className="utsav-public utsav-public-marketing">
       <PublicNav active={page === "features" ? "Platform" : page === "solutions" ? "Solutions" : "About"} />
-      <main ref={mainRef} className="utsav-public-main">
+      <main ref={mainRef} className="utsav-public-main utsav-public-marketing-main">
         <section data-utsav-reveal className="relative overflow-hidden bg-[#f3eee3]">
           <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-24 h-80 w-80 rounded-full border border-[#b88b5a]/20" />
           <div className="mx-auto max-w-[1320px] px-5 py-14 md:px-8 md:py-20">
@@ -608,9 +608,9 @@ export function PricingPage() {
   ];
   return (
     <>
-      <div className="utsav-public">
+      <div className="utsav-public utsav-public-marketing">
       <PublicNav active="Pricing" />
-      <main ref={mainRef} className="utsav-public-main">
+      <main ref={mainRef} className="utsav-public-main utsav-public-marketing-main">
         <section data-utsav-reveal className="bg-secondary/55">
           <div className="mx-auto max-w-[1320px] px-5 py-14 text-center md:px-8 md:py-20">
             <Eyebrow>Soch badi. Plan simple.</Eyebrow>
@@ -655,9 +655,9 @@ export function ContactPage() {
   }
   return (
     <>
-      <div className="utsav-public">
+      <div className="utsav-public utsav-public-marketing">
       <PublicNav active="Contact" />
-      <main ref={mainRef} className="utsav-public-main bg-secondary/40">
+      <main ref={mainRef} className="utsav-public-main utsav-public-marketing-main bg-secondary/40">
         <div data-utsav-reveal className="mx-auto grid max-w-[1160px] gap-10 px-5 py-14 md:grid-cols-[0.8fr_1.2fr] md:px-8 md:py-20">
           <div><Eyebrow>Let’s talk about your workflow</Eyebrow><h1 className="utsav-display-font mt-4 text-[42px] font-semibold leading-tight tracking-[-.04em] md:text-[54px]">Baat shuru karein. Let’s bring your events into focus.</h1><p className="mt-5 max-w-md text-sm leading-7 text-muted-foreground">Tell us what your team coordinates today and where you need more visibility.</p>
             <div className="mt-9 space-y-5 text-xs text-muted-foreground"><p className="flex items-center gap-3"><Mail className="h-4 w-4 text-primary" /> Contact through the enquiry form</p><p className="flex items-center gap-3"><MapPin className="h-4 w-4 text-primary" /> India · supporting event teams nationwide</p><p className="flex items-center gap-3"><Handshake className="h-4 w-4 text-primary" /> Sponsor, venue and ecosystem partnerships</p><p className="flex items-center gap-3"><CircleHelp className="h-4 w-4 text-primary" /> Product walkthroughs and team enquiries</p></div>
