@@ -58,8 +58,9 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Settings } from "lucide-react";
 import { ModuleWorkspace } from "./modules/module-workspace";
+import { EventCoverImage } from "./event-cover-image";
+import { AdminPage } from "./admin/admin-page";
 
 export function AppShell({
   module = "overview",
@@ -72,7 +73,7 @@ export function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [org, setOrg] = useState("Morrow Events");
+  const [org, setOrg] = useState("Ahmedabad Cultural Collective");
 
   const current = admin
     ? { label: "Platform Overview", slug: "admin", icon: ShieldCheck }
@@ -212,7 +213,7 @@ function isUpcomingEvent(event: (typeof events)[number]) {
 }
 
 function formatToday() {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("en-IN", {
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -230,12 +231,6 @@ function Overview({ search }: { search: string }) {
     `${item.who} ${item.action} ${item.event}`.toLowerCase().includes(search.toLowerCase()),
   );
   const activeTasks = tasks.filter((task) => task.status !== "Done").length;
-  const eventPhotos = [
-    "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1000&q=85",
-    "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1000&q=85",
-    "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=1000&q=85",
-    "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1000&q=85",
-  ];
 
   return (
     <div className="space-y-7">
@@ -269,8 +264,8 @@ function Overview({ search }: { search: string }) {
         <Stat label="Total events" value={String(events.length)} delta="In this demo" icon={CalendarDays} />
         <Stat label="Upcoming" value={String(upcomingEvents.length)} delta="Future events" icon={CalendarDays} tone="accent" />
         <Stat label="Active tasks" value={String(activeTasks)} delta="Sample task list" icon={ClipboardList} />
-        <Stat label="Total budget" value="$942k" delta="Across active events" icon={Wallet} />
-        <Stat label="Actual expenses" value="$614k" delta="65% utilized" icon={Wallet} tone="accent" />
+        <Stat label="Total budget" value="₹9.42 Cr" delta="Across active events" icon={Wallet} />
+        <Stat label="Actual expenses" value="₹6.14 Cr" delta="65% utilized" icon={Wallet} tone="accent" />
         <Stat label="Approvals" value="3" delta="Need your review" icon={Activity} />
       </section>
 
@@ -285,7 +280,7 @@ function Overview({ search }: { search: string }) {
                 {filteredEvents.slice(0, 4).map((event, index) => (
                   <article key={event.name} className="group overflow-hidden rounded-xl border border-border/80 bg-card shadow-[0_2px_12px_rgba(38,32,24,0.035)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(38,32,24,0.08)]">
                     <div className="relative h-36 overflow-hidden bg-secondary">
-                      <img src={eventPhotos[index % eventPhotos.length]} alt="Event venue atmosphere" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" loading="lazy" />
+                      <EventCoverImage src={getEventCoverImage(event)} alt={`${event.name} — ${event.type} event in India`} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" loading={index < 2 ? "eager" : "lazy"} />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/5" />
                       <div className="absolute bottom-3 left-3"><span className="rounded-md border border-white/25 bg-black/25 px-2 py-1 text-[10px] font-medium text-white backdrop-blur-sm">{event.type}</span></div>
                       <div className="absolute right-3 top-3"><StatusBadge status={event.status} /></div>
@@ -361,8 +356,8 @@ function Overview({ search }: { search: string }) {
           <section className="rounded-xl border border-border/80 bg-card p-5 shadow-[0_2px_12px_rgba(38,32,24,0.035)] sm:col-span-2 2xl:col-span-1">
             <SectionTitle>Needs attention <Badge variant="outline" className="ml-1 h-5 px-1.5 text-[9px]">3</Badge></SectionTitle>
             <div className="divide-y divide-border/70">
-              <AlertRow title="Budget approval requested" detail="Northstar Product Summit · Scenic" label="Review" />
-              <AlertRow title="Resource conflict detected" detail="Common Ground Festival · Main stage" label="Resolve" />
+              <AlertRow title="Budget approval requested" detail="Bengaluru Innovation Forum · Scenic" label="Review" />
+              <AlertRow title="Resource conflict detected" detail="Delhi University Spring Utsav · Main stage" label="Resolve" />
               <AlertRow title="Insurance certificate expiring" detail="Goodway Guest Travel · Nov 28" label="View" />
             </div>
             <p className="mt-3 text-[9px] text-muted-foreground">Alerts are simulated prototype content.</p>
@@ -520,22 +515,57 @@ function NewEventDialog() {
 type EventRecord = (typeof events)[number];
 
 const eventCoverImages: Record<string, string> = {
-  Conference: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=85",
-  "Gala dinner": "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=85",
-  "Public festival": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=1200&q=85",
-  "Company meeting": "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1200&q=85",
-  "Partner forum": "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1200&q=85",
-  default: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=85",
+  conference: "/utsav-conference.webp",
+  wedding: "/utsav-wedding.webp",
+  navratri: "/utsav-navratri-garba.webp",
+  diwali: "/utsav-diwali-leadership.webp",
+  "college-fest": "/utsav-festival.webp",
+  exhibition: "/utsav-exhibition.webp",
+  default: "/utsav-conference.webp",
 };
+
+const eventCoverKeyByType: Record<string, string> = {
+  Conference: "conference",
+  Wedding: "wedding",
+  Festival: "navratri",
+  "College festival": "college-fest",
+  "Corporate event": "exhibition",
+  Exhibition: "exhibition",
+  "Gala dinner": "wedding",
+  "Public festival": "navratri",
+  "Company meeting": "exhibition",
+  "Partner forum": "exhibition",
+};
+
+function getEventCoverImage(event: EventRecord): string {
+  const key = event.coverImageKey || eventCoverKeyByType[event.type] || "default";
+  return eventCoverImages[key] ?? eventCoverImages["default"]!;
+}
 
 function formatEventDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("en-IN", {
     month: "short",
     day: "numeric",
     year: "numeric",
   }).format(date);
+}
+
+function parseBudgetAmount(value: string): number | null {
+  const normalized = value.replace(/[₹,\s]/g, "");
+  if (!normalized) return 0;
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return null;
+  const amount = Number(normalized);
+  return Number.isFinite(amount) && amount >= 0 ? amount : null;
+}
+
+function formatINR(amount: number): string {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(amount);
 }
 
 function EventsPage({ search }: { search: string }) {
@@ -563,8 +593,8 @@ function EventsPage({ search }: { search: string }) {
       if (sort === "Name: A–Z") return a.name.localeCompare(b.name);
       if (sort === "Progress: high to low") return b.progress - a.progress;
       if (sort === "Budget: high to low") {
-        return Number(b.budget.replace(/[^0-9.]/g, "")) -
-          Number(a.budget.replace(/[^0-9.]/g, ""));
+        return (parseBudgetAmount(b.budget) ?? 0) -
+          (parseBudgetAmount(a.budget) ?? 0);
       }
       return new Date(a.date).getTime() - new Date(b.date).getTime();
     });
@@ -575,7 +605,7 @@ function EventsPage({ search }: { search: string }) {
   const completedCount = eventItems.filter((event) => event.status === "Completed").length;
   const atRiskCount = eventItems.filter((event) => event.status === "At risk").length;
   const totalBudget = eventItems.reduce(
-    (sum, event) => sum + Number(event.budget.replace(/[^0-9.]/g, "")),
+    (sum, event) => sum + (parseBudgetAmount(event.budget) ?? 0),
     0,
   );
 
@@ -584,14 +614,20 @@ function EventsPage({ search }: { search: string }) {
       toast.error("Enter an event name, date and venue.");
       return;
     }
+    const budgetAmount = parseBudgetAmount(budget);
+    if (budgetAmount === null) {
+      toast.error("Enter a valid non-negative budget, for example 250000 or ₹2,50,000.");
+      return;
+    }
     const formattedDate = formatEventDate(`${date}T12:00:00`);
     const newEvent: EventRecord = {
       name: name.trim(),
       type,
+      coverImageKey: eventCoverKeyByType[type] ?? "default",
       date: formattedDate,
       venue: venue.trim(),
       status: "In planning",
-      budget: budget.trim() ? (budget.startsWith("$") ? budget : `$${budget}`) : "$0",
+      budget: formatINR(budgetAmount),
       progress: 0,
     };
     setEventItems((current) => [newEvent, ...current]);
@@ -608,7 +644,7 @@ function EventsPage({ search }: { search: string }) {
   return (
     <div className="space-y-7">
       <PageHeading
-        eyebrow="Morrow Events · Event portfolio"
+        eyebrow="Utsav · Event portfolio"
         title="Events, thoughtfully organized."
         description="Create, track and manage every event from the first plan to the final wrap-up."
         action={
@@ -643,7 +679,7 @@ function EventsPage({ search }: { search: string }) {
           <div>
             <h2 className="text-sm font-semibold">Your event portfolio</h2>
             <p className="mt-1 text-[11px] text-muted-foreground">
-              {filteredEvents.length} of {eventItems.length} events shown · Total planned budget {totalBudget.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
+              {filteredEvents.length} of {eventItems.length} events shown · Total planned budget {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(totalBudget)}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -684,13 +720,13 @@ function EventsPage({ search }: { search: string }) {
           </div>
         ) : view === "Grid" ? (
           <div className="mt-5 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
-            {filteredEvents.map((event) => (
+            {filteredEvents.map((event, index) => (
               <article key={`${event.name}-${event.date}`} className="group overflow-hidden rounded-xl border border-border/80 bg-background transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(38,32,24,0.08)]">
                 <div className="relative h-40 overflow-hidden bg-secondary">
-                  <img
-                    src={eventCoverImages[event.type] ?? eventCoverImages["default"]}
-                    alt={`${event.type} event setting`}
-                    loading="lazy"
+                  <EventCoverImage
+                    src={getEventCoverImage(event)}
+                    alt={`${event.name} — ${event.type} event setting`}
+                    loading={index < 3 ? "eager" : "lazy"}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/5" />
@@ -767,7 +803,7 @@ function EventsPage({ search }: { search: string }) {
               <Input value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="Venue name · City" />
             </label>
             <label className="grid gap-1.5 text-xs font-medium sm:col-span-2">Estimated budget
-              <Input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="e.g. 50000 (optional)" inputMode="decimal" />
+              <Input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="e.g. 250000 or ₹2,50,000 (optional)" inputMode="decimal" />
             </label>
           </div>
           <DialogFooter>
@@ -782,7 +818,7 @@ function EventsPage({ search }: { search: string }) {
           {selectedEvent && (
             <>
               <div className="relative -mx-6 -mt-6 mb-2 h-44 overflow-hidden rounded-t-lg">
-                <img src={eventCoverImages[selectedEvent.type] ?? eventCoverImages["default"]} alt={`${selectedEvent.type} venue`} className="h-full w-full object-cover" />
+                <EventCoverImage src={getEventCoverImage(selectedEvent)} alt={`${selectedEvent.name} — ${selectedEvent.type} event setting`} loading="eager" className="h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 <div className="absolute bottom-3 left-4"><span className="rounded bg-black/30 px-2 py-1 text-[10px] text-white">{selectedEvent.type}</span></div>
               </div>
@@ -838,7 +874,7 @@ function ModulePage({
         className="h-9 gap-2 rounded-sm px-3 text-xs"
         onClick={() =>
           toast.success(
-            `New ${current.label.toLowerCase().replace(/s$/, "")} started`,
+            `New ${current.label.toLowerCase().replace(/s₹/, "")} started`,
           )
         }
       >
@@ -855,7 +891,7 @@ function ModulePage({
   return (
     <>
       <PageHeading
-        eyebrow="Morrow Events · Operations"
+        eyebrow="Utsav · Operations"
         title={current.label}
         description={
           moduleDescriptions[module] ?? "Keep the moving parts connected."
@@ -1200,7 +1236,7 @@ function DataTable({
                       : "text-muted-foreground"
                   }`}
                 >
-                  {["Status", "Outcome", "Label"].includes(headers[j]) ? (
+                  {["Status", "Outcome", "Label"].includes(headers[j] ?? "") ? (
                     <StatusBadge status={cell} />
                   ) : (
                     cell
@@ -1236,24 +1272,24 @@ const sampleRows: Record<
   finance: {
     headers: ["Category", "Event", "Budget", "Actual", "Variance", "Status"],
     rows: [
-      ["Venue & site", "Northstar Product Summit", "$68,000", "$64,250", "-$3,750", "On track"],
-      ["Production", "Northstar Product Summit", "$74,000", "$76,400", "+$2,400", "Review due"],
-      ["Catering", "Fieldnotes Founders Dinner", "$24,500", "$19,800", "-$4,700", "On track"],
-      ["Travel & transport", "Goodwood Partner Forum", "$18,000", "$12,650", "-$5,350", "On track"],
+      ["Venue & site", "Bengaluru Innovation Forum", "₹68,000", "₹64,250", "-₹3,750", "On track"],
+      ["Production", "Bengaluru Innovation Forum", "₹74,000", "₹76,400", "+₹2,400", "Review due"],
+      ["Catering", "Jaipur Palace Wedding", "₹24,500", "₹19,800", "-₹4,700", "On track"],
+      ["Travel & transport", "Mumbai Diwali Leadership Summit", "₹18,000", "₹12,650", "-₹5,350", "On track"],
     ],
     summary: [
-      ["Portfolio budget", "$942,000", "12 events"],
-      ["Committed", "$614,320", "65% utilized"],
-      ["Pending approval", "$18,400", "3 requests"],
+      ["Portfolio budget", "₹9.42 Cr", "12 events"],
+      ["Committed", "₹6.14 Cr", "65% utilized"],
+      ["Pending approval", "₹18,400", "3 requests"],
     ],
   },
   workforce: {
     headers: ["Team member", "Department", "Assignment", "Next shift", "Availability", "Status"],
     rows: [
-      ["Maya Chen", "Production", "Northstar Summit", "Oct 24 · 07:00", "Full time", "Assigned"],
-      ["Alex Morgan", "Guest experience", "Founders Dinner", "Nov 08 · 12:00", "Full time", "Assigned"],
-      ["Jordan Lee", "Technical", "Common Ground", "Dec 04 · 08:00", "Limited", "Review due"],
-      ["Sam Rivera", "Partnerships", "Goodwood Forum", "Nov 18 · 10:00", "Full time", "Assigned"],
+      ["Meera Shah", "Production", "Bengaluru Forum", "Nov 19 · 07:00", "Full time", "Assigned"],
+      ["Isha Shah", "Guest experience", "Jaipur Wedding", "Nov 08 · 12:00", "Full time", "Assigned"],
+      ["Dev Shah", "Technical", "Delhi Spring Utsav", "Dec 05 · 08:00", "Limited", "Review due"],
+      ["Arjun Patel", "Partnerships", "Mumbai Diwali Summit", "Nov 18 · 10:00", "Full time", "Assigned"],
     ],
     summary: [
       ["Team members", "46", "Across 5 departments"],
@@ -1264,37 +1300,37 @@ const sampleRows: Record<
   sponsors: {
     headers: ["Partner", "Package", "Event", "Commitment", "Deliverables", "Status"],
     rows: [
-      ["Fallow & Field", "Presenting", "Northstar Summit", "$75,000", "8 of 10", "Active"],
-      ["Meridian Bank", "Gold", "Northstar Summit", "$40,000", "5 of 6", "Active"],
-      ["Common Table", "Community", "Founders Dinner", "$18,000", "4 of 4", "Complete"],
-      ["Goodway Travel", "Supporting", "Goodwood Forum", "$22,500", "2 of 5", "Review due"],
+      ["Aarunya Foods", "Presenting", "Bengaluru Forum", "₹75,000", "8 of 10", "Active"],
+      ["Narmada Bank", "Gold", "Bengaluru Forum", "₹40,000", "5 of 6", "Active"],
+      ["Rangmanch Collective", "Community", "Jaipur Wedding", "₹18,000", "4 of 4", "Complete"],
+      ["Saarthi Mobility", "Supporting", "Mumbai Diwali Summit", "₹22,500", "2 of 5", "Review due"],
     ],
     summary: [
       ["Active partners", "18", "Across all events"],
-      ["Committed value", "$384,500", "This season"],
+      ["Committed value", "₹384,500", "This season"],
       ["Deliverables due", "7", "Next 14 days"],
     ],
   },
   venues: {
     headers: ["Venue / resource", "Type", "Capacity", "Event booking", "Date", "Status"],
     rows: [
-      ["Pier 27", "Waterfront venue", "1,800", "Northstar Summit", "Oct 24", "Confirmed"],
-      ["The Foundry", "Industrial venue", "240", "Founders Dinner", "Nov 08", "Confirmed"],
-      ["Main stage · CG", "Production resource", "—", "Common Ground", "Dec 05", "Conflict"],
-      ["The Glasshouse", "Conference venue", "620", "Morrow Annual Meeting", "Jan 16", "In planning"],
+      ["Riverfront Event Grounds", "Outdoor festival grounds", "1,800", "Ahmedabad Navratri Nights", "Oct 24", "Confirmed"],
+      ["Rambagh Palace Lawns", "Palace wedding venue", "240", "Jaipur Palace Wedding", "Nov 08", "Confirmed"],
+      ["Main stage · Delhi Utsav", "Production resource", "—", "Delhi University Spring Utsav", "Jan 16", "Conflict"],
+      ["KTPO Convention Centre", "Conference venue", "620", "Bengaluru Innovation Forum", "Nov 19", "Confirmed"],
     ],
     summary: [
       ["Partner venues", "24", "Across 4 cities"],
       ["Resources tracked", "138", "Equipment & spaces"],
-      ["Conflicts to resolve", "1", "Common Ground"],
+      ["Conflicts to resolve", "1", "Delhi Spring Utsav"],
     ],
   },
   "live-operations": {
     headers: ["Incident / operation", "Event", "Owner", "Updated", "Priority", "Status"],
     rows: [
-      ["Stage power redundancy check", "Common Ground Festival", "Jordan Lee", "10 min ago", "High", "In progress"],
-      ["Guest transport arrival window", "Northstar Summit", "Maya Chen", "28 min ago", "Medium", "Monitoring"],
-      ["Final seating adjustment", "Founders Dinner", "Alex Morgan", "1 hr ago", "Low", "Resolved"],
+      ["Stage power redundancy check", "Delhi University Spring Utsav", "Dev Shah", "10 min ago", "High", "In progress"],
+      ["Guest transport arrival window", "Bengaluru Forum", "Meera Shah", "28 min ago", "Medium", "Monitoring"],
+      ["Final seating adjustment", "Jaipur Wedding", "Isha Shah", "1 hr ago", "Low", "Resolved"],
     ],
     summary: [
       ["Live events", "2", "Operations active"],
@@ -1305,9 +1341,9 @@ const sampleRows: Record<
   analytics: {
     headers: ["Event", "Attendance", "Budget variance", "Task completion", "Vendor rating", "Outcome"],
     rows: [
-      ["Northstar Product Summit", "1,240 / 1,300", "-2.4%", "84%", "4.8 / 5", "On track"],
-      ["Fieldnotes Founders Dinner", "186 / 200", "-5.8%", "72%", "4.9 / 5", "On track"],
-      ["Goodwood Partner Forum", "320 / 320", "+1.2%", "96%", "4.7 / 5", "Complete"],
+      ["Bengaluru Innovation Forum", "1,240 / 1,300", "-2.4%", "84%", "4.8 / 5", "On track"],
+      ["Jaipur Palace Wedding", "186 / 200", "-5.8%", "72%", "4.9 / 5", "On track"],
+      ["Mumbai Diwali Leadership Summit", "320 / 320", "+1.2%", "96%", "4.7 / 5", "Complete"],
     ],
     summary: [
       ["Events delivered", "28", "This year"],
@@ -1318,10 +1354,10 @@ const sampleRows: Record<
   documents: {
     headers: ["Document", "Category", "Event", "Owner", "Updated", "Status"],
     rows: [
-      ["Northstar · Floor plan v4.pdf", "Production", "Northstar Summit", "Maya Chen", "Oct 14, 2026", "Current"],
-      ["Catering agreement.pdf", "Contract", "Founders Dinner", "Alex Morgan", "Oct 13, 2026", "Review due"],
-      ["Brand partner asset guide.docx", "Partnerships", "Goodwood Forum", "Sam Rivera", "Oct 12, 2026", "Current"],
-      ["Safety & site plan.xlsx", "Operations", "Common Ground", "Jordan Lee", "Oct 11, 2026", "Current"],
+      ["Bengaluru Forum · Floor plan v4.pdf", "Production", "Bengaluru Forum", "Meera Shah", "Oct 14, 2026", "Current"],
+      ["Catering agreement.pdf", "Contract", "Jaipur Wedding", "Isha Shah", "Oct 13, 2026", "Review due"],
+      ["Brand partner asset guide.docx", "Partnerships", "Mumbai Diwali Summit", "Arjun Patel", "Oct 12, 2026", "Current"],
+      ["Safety & site plan.xlsx", "Operations", "Delhi Spring Utsav", "Dev Shah", "Oct 11, 2026", "Current"],
     ],
     summary: [
       ["Documents", "246", "Across all events"],
@@ -1332,23 +1368,23 @@ const sampleRows: Record<
   settings: {
     headers: ["Team member", "Role", "Department", "Last active", "Access", "Status"],
     rows: [
-      ["Maya Chen", "Organization owner", "Leadership", "Just now", "Full access", "Active"],
-      ["Alex Morgan", "Event manager", "Production", "12 min ago", "Events & finance", "Active"],
-      ["Jordan Lee", "Operations lead", "Technical", "48 min ago", "Operations", "Active"],
-      ["Sam Rivera", "Coordinator", "Partnerships", "2 hrs ago", "Events & sponsors", "Active"],
+      ["Meera Shah", "Organization owner", "Leadership", "Just now", "Full access", "Active"],
+      ["Isha Shah", "Event manager", "Production", "12 min ago", "Events & finance", "Active"],
+      ["Dev Shah", "Operations lead", "Technical", "48 min ago", "Operations", "Active"],
+      ["Arjun Patel", "Coordinator", "Partnerships", "2 hrs ago", "Events & sponsors", "Active"],
     ],
     summary: [
       ["Team members", "24", "3 pending invites"],
-      ["Plan", "Studio", "$249 / month"],
-      ["Renewal date", "Nov 01", "Card ending 4821"],
+      ["Plan", "Studio", "₹4,999 / month"],
+      ["Renewal date", "Dec 01", "Demo billing profile"],
     ],
   },
   intelligence: {
     headers: ["Signal", "Event", "Context", "Suggested next step", "Confidence", "Label"],
     rows: [
-      ["Production spend trending 8% over estimate", "Northstar Product Summit", "Scenic vendor revision · updated today", "Review the revised line items", "High", "Demo insight"],
-      ["Task handoff may affect load-in", "Common Ground Festival", "3 dependencies due within 48 hours", "Confirm crew availability", "Medium", "Demo insight"],
-      ["Venue hold expires this Friday", "Morrow Annual Meeting", "Glasshouse · 620 guest capacity", "Ask venue to extend hold", "High", "Demo insight"],
+      ["Production spend trending 8% over estimate", "Bengaluru Innovation Forum", "Scenic vendor revision · updated today", "Review the revised line items", "High", "Demo insight"],
+      ["Task handoff may affect load-in", "Delhi University Spring Utsav", "3 dependencies due within 48 hours", "Confirm crew availability", "Medium", "Demo insight"],
+      ["Venue hold expires this Friday", "Bengaluru Innovation Forum", "Sabarmati Convention Centre · 620 guest capacity", "Ask venue to extend hold", "High", "Demo insight"],
     ],
     summary: [
       ["Signals this week", "8", "Demo content"],
@@ -1406,7 +1442,7 @@ function GenericModule({
               <ul className="mt-2 space-y-2 text-xs">
                 <li>• Review revised scenic estimate</li>
                 <li>• Confirm festival load-in crew</li>
-                <li>• Extend Glasshouse venue hold</li>
+                <li>• Extend Jio World Convention Centre venue hold</li>
               </ul>
             </div>
           </section>
@@ -1475,10 +1511,10 @@ function GenericModule({
             <SectionTitle>Spend by category</SectionTitle>
             <div className="space-y-3 border-y border-border py-3">
               {[
-                ["Venue & site", "$184,200", 82],
-                ["Production", "$156,400", 68],
-                ["Food & beverage", "$118,600", 55],
-                ["Travel & staffing", "$74,300", 38],
+                ["Venue & site", "₹184,200", 82],
+                ["Production", "₹156,400", 68],
+                ["Food & beverage", "₹118,600", 55],
+                ["Travel & staffing", "₹74,300", 38],
               ].map(([name, total, value]) => (
                 <div key={name as string}>
                   <div className="mb-1 flex justify-between text-[10px]">
@@ -1520,13 +1556,13 @@ function GenericModule({
         <div className="mb-5 grid gap-3 sm:grid-cols-3">
           <div className="border-l-2 border-primary pl-3">
             <p className="text-[10px] text-muted-foreground">
-              Northstar Product Summit
+              Bengaluru Innovation Forum
             </p>
             <p className="mt-1 text-xs font-semibold">Production checks · Dec 05</p>
           </div>
           <div className="border-l-2 border-chart-2 pl-3">
             <p className="text-[10px] text-muted-foreground">
-              Goodwood Partner Forum
+              Mumbai Diwali Leadership Summit
             </p>
             <p className="mt-1 text-xs font-semibold">
               Final checks · Nov 19
@@ -1534,7 +1570,7 @@ function GenericModule({
           </div>
           <div className="border-l-2 border-chart-4 pl-3">
             <p className="text-[10px] text-muted-foreground">
-              Common Ground Festival
+              Delhi University Spring Utsav
             </p>
             <p className="mt-1 text-xs font-semibold">1 issue to resolve</p>
           </div>
@@ -1642,120 +1678,6 @@ function GenericModule({
           </p>
         </div>
       )}
-    </>
-  );
-}
-
-function AdminPage({ search }: { search: string }) {
-  const [tab, setTab] = useState("Organizations");
-
-  const orgs = [
-    ["Morrow Events", "Studio", "24", "Oct 2025", "Active", "San Francisco"],
-    ["Northstar Collective", "Enterprise", "68", "Sep 2025", "Active", "New York"],
-    ["Common Ground Co.", "Studio", "16", "Jan 2026", "Review due", "London"],
-    ["Goodwood Partners", "Team", "9", "Mar 2026", "Active", "London"],
-  ].filter((row) =>
-    row.join(" ").toLowerCase().includes(search.toLowerCase()),
-  );
-
-  return (
-    <>
-      <PageHeading
-        eyebrow="Platform administration · Demo environment"
-        title="A view across every team."
-        description="Manage organizations, accounts, subscriptions, and platform activity in one place."
-        action={
-          <Button
-            className="h-9 rounded-sm text-xs"
-            onClick={() =>
-              toast.info("Organization provisioning is simulated")
-            }
-          >
-            Add organization
-          </Button>
-        }
-      />
-
-      <div className="grid gap-4 border-y border-border py-5 sm:grid-cols-4">
-        {[
-          ["Organizations", "148", "+12 this month"],
-          ["Active users", "2,840", "Across all teams"],
-          ["Subscriptions", "132", "89% active"],
-          ["Platform health", "99.98%", "Last 30 days"],
-        ].map(([name, value, note]) => (
-          <div key={name}>
-            <p className="text-[11px] text-muted-foreground">{name}</p>
-            <strong className="mt-1 block text-[23px]">{value}</strong>
-            <span className="text-[10px] text-muted-foreground">{note}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-7">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <Tabs value={tab} onValueChange={setTab}>
-            <TabsList>
-              {[
-                "Organizations",
-                "Users",
-                "Subscriptions",
-                "Activity",
-                "System settings",
-              ].map((item) => (
-                <TabsTrigger key={item} value={item}>
-                  {item}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => toast.info(`${tab} report exported`)}
-            className="h-8 text-[10px]"
-          >
-            Export report
-          </Button>
-        </div>
-
-        {tab === "Organizations" ? (
-          <DataTable
-            headers={[
-              "Organization",
-              "Plan",
-              "Members",
-              "Started",
-              "Status",
-              "Location",
-            ]}
-            rows={orgs}
-          />
-        ) : (
-          <div className="border-y border-border py-10 text-center">
-            <Settings className="mx-auto h-5 w-5 text-muted-foreground" />
-            <p className="mt-3 text-sm font-medium">{tab}</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Platform {tab.toLowerCase()} controls are ready for review in
-              this demo.
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-4"
-              onClick={() => toast.success(`${tab} settings opened`)}
-            >
-              Open {tab.toLowerCase()}
-            </Button>
-          </div>
-        )}
-      </div>
-
-      <p className="mt-6 flex items-center gap-2 text-[10px] text-muted-foreground">
-        <ShieldCheck className="h-3.5 w-3.5" />
-        Sample organization data · Administrative controls are simulated and
-        are not security boundaries.
-      </p>
     </>
   );
 }

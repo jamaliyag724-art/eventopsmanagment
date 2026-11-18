@@ -110,7 +110,7 @@ export function Topbar({ title, search, setSearch, setMobileOpen, notificationsO
                     <p className="border-l-2 border-border pl-3 leading-relaxed">
                       <b>New floor plan uploaded</b>
                       <span className="block text-muted-foreground">
-                        Goodwood Forum · 2 hours ago
+                        Mumbai Diwali Leadership Summit · 2 hours ago
                       </span>
                     </p>
                   </div>
@@ -122,17 +122,17 @@ export function Topbar({ title, search, setSearch, setMobileOpen, notificationsO
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-9 gap-2 px-1.5">
                   <span className="grid h-7 w-7 place-items-center rounded-full bg-secondary text-[10px] font-semibold">
-                    MC
+                    MS
                   </span>
                   <span className="hidden text-xs font-medium lg:block">
-                    Maya Chen
+                    Meera Shah
                   </span>
                   <ChevronDown className="hidden h-3.5 w-3.5 text-muted-foreground lg:block" />
                 </Button>
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Maya Chen · Owner</DropdownMenuLabel>
+                <DropdownMenuLabel>Meera Shah · Owner</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => toast.success("Profile opened")}

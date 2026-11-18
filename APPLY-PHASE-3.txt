@@ -1,0 +1,20 @@
+UTSAV PHASE 3 PATCH — MOTION & LOADING STATES
+
+Apply this patch to the root of your existing eventopsmanagment-main project.
+It contains only the changed/new source files; it does not contain package.json,
+package-lock.json, node_modules, or generated build output.
+
+macOS command:
+unzip -o ~/Downloads/utsav-phase3-motion-loading-patch.zip -d ~/Downloads/eventopsmanagment-main
+
+Then:
+cd ~/Downloads/eventopsmanagment-main
+npx tsc --noEmit
+npm run build
+npm run dev
+
+The loading skeleton is a Suspense fallback. It appears only while route content
+actually suspends (for example, during lazy route chunk loading); synchronous
+demo data is not delayed artificially. Route-entry/card/button motion is CSS-only
+and respects prefers-reduced-motion. No new dependency, backend, persistence,
+or localStorage was added.

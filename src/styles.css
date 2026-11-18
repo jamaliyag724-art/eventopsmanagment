@@ -168,3 +168,225 @@
     color: var(--color-foreground);
   }
 }
+
+
+
+/* Utsav Phase 3 — restrained route, card and control motion. */
+@keyframes utsav-route-enter {
+  from { opacity: 0; transform: translate3d(0, 7px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes utsav-route-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes utsav-card-enter {
+  from { opacity: 0; transform: translate3d(0, 12px, 0) scale(.992); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes utsav-skeleton-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+.utsav-route-stage {
+  min-height: 100vh;
+  animation: utsav-route-fade 240ms ease-out both;
+}
+.utsav-route-stage main,
+.app-frame main {
+  animation: utsav-route-enter 360ms cubic-bezier(.2,.7,.2,1) both;
+}
+.app-frame main > * > * {
+  animation: utsav-card-enter 520ms cubic-bezier(.2,.7,.2,1) both;
+}
+.app-frame main > * > *:nth-child(2) { animation-delay: 65ms; }
+.app-frame main > * > *:nth-child(3) { animation-delay: 120ms; }
+.app-frame main > * > *:nth-child(4) { animation-delay: 175ms; }
+.app-frame main > * > *:nth-child(5) { animation-delay: 230ms; }
+.app-frame main > * > *:nth-child(6) { animation-delay: 285ms; }
+.app-frame main .grid > article,
+.app-frame main .grid > section {
+  animation: utsav-card-enter 540ms cubic-bezier(.2,.7,.2,1) both;
+}
+.app-frame main .grid > article:nth-child(2),
+.app-frame main .grid > section:nth-child(2) { animation-delay: 55ms; }
+.app-frame main .grid > article:nth-child(3),
+.app-frame main .grid > section:nth-child(3) { animation-delay: 100ms; }
+.app-frame main .grid > article:nth-child(4),
+.app-frame main .grid > section:nth-child(4) { animation-delay: 145ms; }
+.app-frame main .grid > article:nth-child(5),
+.app-frame main .grid > section:nth-child(5) { animation-delay: 190ms; }
+.app-frame button:not(:disabled),
+.app-frame a,
+.app-frame [role="button"] {
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease,
+    opacity 180ms ease;
+}
+.app-frame button:not(:disabled):active,
+.app-frame [role="button"]:active {
+  transform: translateY(1px) scale(.99);
+}
+.app-frame .group img {
+  transition: transform 520ms cubic-bezier(.2,.7,.2,1);
+}
+.app-frame .group:hover img {
+  transform: scale(1.045);
+}
+.app-frame article.group,
+.app-frame main .rounded-xl.border {
+  transition:
+    border-color 180ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+.utsav-skeleton {
+  background-image: linear-gradient(
+    100deg,
+    color-mix(in oklab, var(--color-primary) 7%, var(--color-secondary)) 20%,
+    color-mix(in oklab, var(--color-primary) 13%, var(--color-secondary)) 42%,
+    color-mix(in oklab, var(--color-primary) 7%, var(--color-secondary)) 64%
+  );
+  background-size: 220% 100%;
+  animation: utsav-skeleton-shimmer 1.35s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .utsav-route-stage,
+  .utsav-route-stage main,
+  .app-frame main,
+  .app-frame main > * > *,
+  .app-frame main .grid > article,
+  .app-frame main .grid > section {
+    animation: none !important;
+  }
+  .app-frame button,
+  .app-frame a,
+  .app-frame [role="button"],
+  .app-frame .group img,
+  .app-frame article.group,
+  .app-frame main .rounded-xl.border {
+    transition-duration: 0.01ms !important;
+  }
+  .utsav-skeleton {
+    animation: none !important;
+  }
+}
+
+/* Utsav public website experience: editorial type, first-visit welcome, and scroll reveals.
+   Scoped to marketing/auth pages so the signed-in workspace and admin stay untouched. */
+@keyframes utsav-public-reveal {
+  from { opacity: 0; transform: translate3d(0, 22px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes utsav-welcome-mark-turn {
+  from { transform: rotate(-8deg) scale(.96); }
+  to { transform: rotate(8deg) scale(1.02); }
+}
+@keyframes utsav-dandiya-tap-one {
+  0%, 100% { transform: rotate(-35deg) translateY(0); }
+  50% { transform: rotate(-22deg) translateY(-3px); }
+}
+@keyframes utsav-dandiya-tap-two {
+  0%, 100% { transform: rotate(35deg) translateY(0); }
+  50% { transform: rotate(22deg) translateY(3px); }
+}
+@keyframes utsav-welcome-aura {
+  0%, 100% { opacity: .38; transform: scale(.92); }
+  50% { opacity: .72; transform: scale(1.08); }
+}
+
+.utsav-display-font,
+.utsav-public h1,
+.utsav-public h2 {
+  font-family: "Playfair Display", "Noto Sans Devanagari", Georgia, serif;
+  font-optical-sizing: auto;
+}
+.utsav-public h1,
+.utsav-public h2 {
+  letter-spacing: -.035em;
+}
+.utsav-public-main > [data-utsav-reveal] {
+  opacity: 1;
+}
+.utsav-public-main .utsav-reveal {
+  opacity: 0;
+  transform: translate3d(0, 22px, 0);
+  transition: opacity 720ms cubic-bezier(.2,.7,.2,1), transform 720ms cubic-bezier(.2,.7,.2,1);
+  transition-delay: var(--utsav-reveal-delay, 0ms);
+}
+.utsav-public-main .utsav-reveal.utsav-reveal-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+.utsav-welcome-dialog {
+  animation: utsav-public-reveal 520ms cubic-bezier(.2,.75,.25,1) both;
+}
+.utsav-welcome-pattern {
+  isolation: isolate;
+  background-image: repeating-linear-gradient(45deg, transparent 0 25px, rgba(166,78,55,.045) 25px 26px, transparent 26px 51px), repeating-linear-gradient(-45deg, transparent 0 25px, rgba(183,122,66,.055) 25px 26px, transparent 26px 51px);
+}
+.utsav-welcome-aura {
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 16px;
+  width: 230px;
+  height: 180px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(194,145,82,.22), transparent 69%);
+  animation: utsav-welcome-aura 4.5s ease-in-out infinite;
+}
+.utsav-welcome-mark {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  animation: utsav-welcome-mark-turn 6s ease-in-out infinite alternate;
+}
+.utsav-dandiya {
+  position: absolute;
+  top: 12px;
+  left: 49px;
+  width: 6px;
+  height: 82px;
+  border: 1px solid rgba(111,58,43,.55);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #dba85f 0 14%, #9e4735 14% 86%, #dba85f 86% 100%);
+  transform-origin: center;
+  box-shadow: 0 2px 7px rgba(78,45,28,.15);
+}
+.utsav-dandiya-one { animation: utsav-dandiya-tap-one 1.8s ease-in-out infinite; }
+.utsav-dandiya-two { animation: utsav-dandiya-tap-two 1.8s ease-in-out infinite; }
+.utsav-dandiya-two { left: 49px; animation-delay: -.9s; }
+.utsav-partner-chip { min-width: 0; }
+.utsav-public a,
+.utsav-public button { -webkit-tap-highlight-color: transparent; }
+.utsav-public a:focus-visible,
+.utsav-public button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+@media (max-width: 640px) {
+  .utsav-welcome-dialog { width: calc(100vw - 28px); max-height: calc(100dvh - 28px); overflow-y: auto; }
+  .utsav-welcome-mark { width: 88px; height: 88px; }
+  .utsav-dandiya { left: 41px; height: 70px; }
+  .utsav-dandiya-two { left: 41px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .utsav-public-main > .utsav-reveal,
+  .utsav-public-main .utsav-reveal.utsav-reveal-visible {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .utsav-welcome-dialog,
+  .utsav-welcome-mark,
+  .utsav-dandiya,
+  .utsav-welcome-aura {
+    animation: none !important;
+  }
+}

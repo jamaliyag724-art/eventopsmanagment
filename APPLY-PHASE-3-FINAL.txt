@@ -1,0 +1,21 @@
+UTSAV PHASE 3 — FINAL IMAGE PERFORMANCE & MOTION UPDATE
+
+This ZIP contains the complete source project (not node_modules or generated build output).
+
+To update the existing macOS project without replacing node_modules:
+
+1. Stop Vite with Ctrl+C.
+2. Extract this ZIP over the current project directory:
+
+   unzip -o ~/Downloads/utsav-phase3-final-source.zip -d ~/Downloads/eventopsmanagment-main
+
+3. Run:
+
+   cd ~/Downloads/eventopsmanagment-main
+   npx tsc --noEmit
+   npm run build
+   npm run dev
+
+The existing package.json/package-lock.json were not changed by this update. No backend, database, localStorage, or new npm dependency was added.
+
+See UTSAV-PHASE-3-PERFORMANCE-UPDATE.md for the full change and verification report.

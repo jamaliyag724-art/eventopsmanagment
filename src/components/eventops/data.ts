@@ -23,19 +23,19 @@ export const modules: ModuleItem[] = [
 ];
 
 export const events = [
-  { name: "Ahmedabad Navratri Nights", type: "Festival", date: "Oct 24, 2026", venue: "Riverfront Grounds · Ahmedabad", status: "Completed", budget: "₹2,48,00,000", progress: 100 },
-  { name: "Jaipur Palace Wedding", type: "Wedding", date: "Nov 08, 2026", venue: "Rambagh Palace · Jaipur", status: "Completed", budget: "₹86,50,000", progress: 100 },
-  { name: "Bengaluru Innovation Forum", type: "Conference", date: "Nov 19, 2026", venue: "KTPO Convention Centre · Bengaluru", status: "Confirmed", budget: "₹1,24,00,000", progress: 91 },
-  { name: "Mumbai Diwali Leadership Summit", type: "Corporate event", date: "Dec 05, 2026", venue: "Jio World Convention Centre · Mumbai", status: "At risk", budget: "₹3,10,00,000", progress: 36 },
-  { name: "Delhi University Spring Utsav", type: "College festival", date: "Jan 16, 2027", venue: "North Campus · Delhi", status: "In planning", budget: "₹1,74,00,000", progress: 24 },
+  { name: "Ahmedabad Navratri Nights", type: "Festival", coverImageKey: "navratri", date: "Oct 24, 2026", venue: "Riverfront Grounds · Ahmedabad", status: "Completed", budget: "₹2,48,00,000", progress: 100 },
+  { name: "Jaipur Palace Wedding", type: "Wedding", coverImageKey: "wedding", date: "Nov 08, 2026", venue: "Rambagh Palace · Jaipur", status: "Completed", budget: "₹86,50,000", progress: 100 },
+  { name: "Bengaluru Innovation Forum", type: "Conference", coverImageKey: "conference", date: "Nov 19, 2026", venue: "KTPO Convention Centre · Bengaluru", status: "Confirmed", budget: "₹1,24,00,000", progress: 91 },
+  { name: "Mumbai Diwali Leadership Summit", type: "Corporate event", coverImageKey: "diwali", date: "Dec 05, 2026", venue: "Jio World Convention Centre · Mumbai", status: "At risk", budget: "₹3,10,00,000", progress: 36 },
+  { name: "Delhi University Spring Utsav", type: "College festival", coverImageKey: "college-fest", date: "Jan 16, 2027", venue: "North Campus · Delhi", status: "In planning", budget: "₹1,74,00,000", progress: 24 },
 ];
 
 export const tasks = [
-  { title: "Finalize speaker presentation materials", event: "Bengaluru Innovation Forum", owner: "Maya Chen", due: "Nov 16", status: "In progress", priority: "High" },
+  { title: "Finalize speaker presentation materials", event: "Bengaluru Innovation Forum", owner: "Meera Shah", due: "Nov 16", status: "In progress", priority: "High" },
   { title: "Confirm final guest arrangements", event: "Bengaluru Innovation Forum", owner: "Aarav Mehta", due: "Nov 17", status: "To do", priority: "Medium" },
-  { title: "Resolve lighting and production risks", event: "Mumbai Diwali Leadership Summit", owner: "Jordan Lee", due: "Nov 18", status: "In progress", priority: "High" },
-  { title: "Submit sponsor activation plan", event: "Bengaluru Innovation Forum", owner: "Sam Rivera", due: "Nov 19", status: "Done", priority: "Low" },
-  { title: "Complete initial event timeline", event: "Delhi University Spring Utsav", owner: "Maya Chen", due: "Nov 20", status: "To do", priority: "Medium" },
+  { title: "Resolve lighting and production risks", event: "Mumbai Diwali Leadership Summit", owner: "Dev Shah", due: "Nov 18", status: "In progress", priority: "High" },
+  { title: "Submit sponsor activation plan", event: "Bengaluru Innovation Forum", owner: "Arjun Patel", due: "Nov 19", status: "Done", priority: "Low" },
+  { title: "Complete initial event timeline", event: "Delhi University Spring Utsav", owner: "Meera Shah", due: "Nov 20", status: "To do", priority: "Medium" },
 ];
 
 export const workshops = [
@@ -49,14 +49,14 @@ export const vendors = [
   { name: "Rangmanch Productions", category: "AV & Production", contact: "Kabir Nair", rating: "4.8", events: "8 events", status: "Contracted" },
   { name: "Phool & Patta Studio", category: "Floral & Decor", contact: "Ananya Rao", rating: "4.7", events: "6 events", status: "Preferred" },
   { name: "Saarthi Guest Travel", category: "Transport", contact: "Rafi Khan", rating: "4.6", events: "4 events", status: "Review due" },
-  { name: "Studio Diya", category: "Photography", contact: "Nina Park", rating: "4.9", events: "9 events", status: "Contracted" },
+  { name: "Studio Diya", category: "Photography", contact: "Nisha Desai", rating: "4.9", events: "9 events", status: "Contracted" },
 ];
 
 export const activities = [
-  { who: "Maya Chen", action: "updated the speaker presentation materials", event: "Bengaluru Innovation Forum", time: "12 min ago", initials: "MC" },
-  { who: "Jordan Lee", action: "flagged 2 production risks", event: "Mumbai Diwali Leadership Summit", time: "48 min ago", initials: "JL" },
+  { who: "Meera Shah", action: "updated the speaker presentation materials", event: "Bengaluru Innovation Forum", time: "12 min ago", initials: "MS" },
+  { who: "Dev Shah", action: "flagged 2 production risks", event: "Mumbai Diwali Leadership Summit", time: "48 min ago", initials: "DS" },
   { who: "Aarav Mehta", action: "updated the guest arrangements", event: "Bengaluru Innovation Forum", time: "2 hrs ago", initials: "AM" },
-  { who: "Sam Rivera", action: "completed a sponsor deliverable", event: "Bengaluru Innovation Forum", time: "Yesterday", initials: "SR" },
+  { who: "Arjun Patel", action: "completed a sponsor deliverable", event: "Bengaluru Innovation Forum", time: "Yesterday", initials: "AP" },
 ];
 
 export const budgetSeries = [

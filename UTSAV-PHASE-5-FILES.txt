@@ -1,0 +1,16 @@
+Modified:
+- src/components/eventops/public-site.tsx
+- src/routeTree.gen.ts
+- src/components/eventops/admin/admin-page.tsx
+- src/components/eventops/modules/module-workspace.tsx
+- src/components/eventops/app-shell.tsx
+- src/test/app-routing.test.tsx
+
+Added:
+- src/routes/privacy.tsx
+- src/routes/terms.tsx
+- src/routes/cookies.tsx
+- UTSAV-PHASE-5-QA.md
+
+Removed:
+- src/components/eventops/eventops-app-shell-redesigned.tsx (confirmed no imports in src)

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -43,16 +44,39 @@ const pageContent: Record<LegalPageKind, { title: string; summary: string; secti
 
 export function LegalPage({ kind }: { kind: LegalPageKind }) {
   const content = pageContent[kind];
+  const mainRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const root = mainRef.current;
+    if (!root) return;
+    const sections = Array.from(root.querySelectorAll<HTMLElement>("[data-utsav-reveal]"));
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
+      sections.forEach((section) => section.classList.add("utsav-reveal-visible"));
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("utsav-reveal-visible");
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -36px 0px" });
+    sections.forEach((section, index) => {
+      section.classList.add("utsav-reveal");
+      section.style.setProperty("--utsav-reveal-delay", `${(index % 3) * 70}ms`);
+      observer.observe(section);
+    });
+    return () => observer.disconnect();
+  }, []);
   return (
-    <>
+    <div className="utsav-public">
       <header className="border-b border-border bg-background">
         <div className="mx-auto flex h-[70px] max-w-[1320px] items-center justify-between px-5 md:px-8">
           <Link to="/" aria-label="Utsav home"><img src="/utsav-horizontal-logo-navbar.svg" alt="Utsav" className="h-11 w-auto" /></Link>
           <Button asChild variant="outline" size="sm"><Link to="/contact">Contact</Link></Button>
         </div>
       </header>
-      <main className="min-h-[65vh] bg-secondary/35">
-        <section className="utsav-jaali-pattern border-b border-border">
+      <main ref={mainRef} className="utsav-public-main min-h-[65vh] bg-secondary/35">
+        <section data-utsav-reveal className="utsav-jaali-pattern border-b border-border">
           <div className="mx-auto max-w-[960px] px-5 py-14 md:px-8 md:py-20">
             <p className="eyebrow">Utsav · Legal information</p>
             <h1 className="mt-4 text-4xl font-semibold leading-tight md:text-5xl">{content.title}</h1>
@@ -62,7 +86,7 @@ export function LegalPage({ kind }: { kind: LegalPageKind }) {
         </section>
         <div className="mx-auto max-w-[960px] px-5 py-10 md:px-8 md:py-14">
           {content.sections.map(([title, body], index) => (
-            <section key={title} className="grid gap-3 border-b border-border py-6 first:pt-0 md:grid-cols-[220px_1fr] md:gap-8">
+            <section key={title} data-utsav-reveal className="grid gap-3 border-b border-border py-6 first:pt-0 md:grid-cols-[220px_1fr] md:gap-8">
               <h2 className="text-sm font-semibold"><span className="mr-3 text-xs font-normal text-primary">0{index + 1}</span>{title}</h2>
               <p className="text-sm leading-7 text-muted-foreground">{body}</p>
             </section>
@@ -71,6 +95,6 @@ export function LegalPage({ kind }: { kind: LegalPageKind }) {
         </div>
       </main>
       <PublicFooter />
-    </>
+    </div>
   );
 }
