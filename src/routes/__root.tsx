@@ -9,7 +9,7 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { Suspense, useEffect, type ReactNode } from "react";
+import { Suspense, useEffect, useState, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { RouteLoadingSkeleton } from "@/components/eventops/route-loading-skeleton";
 
@@ -159,6 +159,61 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function PublicStartupExperience() {
+  const [stage, setStage] = useState<"visible" | "leaving" | "hidden">("visible");
+
+  useEffect(() => {
+    const startedAt = window.performance.now();
+    let completed = false;
+    let exitTimer = 0;
+    let fallbackTimer = 0;
+
+    const finish = () => {
+      if (completed) return;
+      completed = true;
+      window.clearTimeout(fallbackTimer);
+      const minimumTimeLeft = Math.max(0, 560 - (window.performance.now() - startedAt));
+      exitTimer = window.setTimeout(() => setStage("leaving"), minimumTimeLeft);
+    };
+
+    // Wait for the first hero image and the current font set, but never hold
+    // the visitor behind the curtain for more than 1.25 seconds.
+    const heroImage = document.querySelector<HTMLImageElement>("[data-utsav-hero]");
+    const imageReady = heroImage?.decode ? heroImage.decode().catch(() => undefined) : Promise.resolve();
+    const fontsReady = document.fonts?.ready ?? Promise.resolve();
+    fallbackTimer = window.setTimeout(finish, 1250);
+    void Promise.allSettled([imageReady, fontsReady]).then(finish);
+
+    return () => {
+      window.clearTimeout(fallbackTimer);
+      window.clearTimeout(exitTimer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (stage !== "leaving") return;
+    const timer = window.setTimeout(() => setStage("hidden"), 420);
+    return () => window.clearTimeout(timer);
+  }, [stage]);
+
+  if (stage === "hidden") return null;
+
+  return (
+    <div className={`utsav-startup-screen${stage === "leaving" ? " is-leaving" : ""}`} role="status" aria-label="Loading Utsav">
+      <div className="utsav-startup-content">
+        <div className="utsav-startup-emblem" aria-hidden="true">
+          <span className="utsav-startup-orbit utsav-startup-orbit-one" />
+          <span className="utsav-startup-orbit utsav-startup-orbit-two" />
+          <span className="utsav-startup-center">उ</span>
+        </div>
+        <img src="/utsav-horizontal-logo-navbar.svg" alt="Utsav" className="utsav-startup-logo" width="230" height="58" />
+        <p className="utsav-startup-tagline">From vision to celebration</p>
+        <div className="utsav-startup-progress" aria-hidden="true"><span /></div>
+      </div>
+    </div>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({
@@ -166,10 +221,11 @@ function RootComponent() {
   });
   const workspaceRoute =
     pathname.startsWith("/app") || pathname.startsWith("/admin");
+  const publicRoute = ["/", "/features", "/solutions", "/pricing", "/about", "/contact", "/login", "/signup", "/privacy", "/terms", "/cookies"].includes(pathname);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div key={pathname} className="utsav-route-stage">
+      <div key={pathname} className={`utsav-route-stage${publicRoute ? " utsav-public-route-stage" : ""}`}>
         <Suspense
           fallback={<RouteLoadingSkeleton workspace={workspaceRoute} />}
         >
@@ -177,6 +233,7 @@ function RootComponent() {
           <Outlet />
         </Suspense>
       </div>
+      {publicRoute && <PublicStartupExperience />}
       <Toaster />
     </QueryClientProvider>
   );

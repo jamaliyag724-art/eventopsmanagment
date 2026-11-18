@@ -483,3 +483,282 @@
     transform: none !important;
   }
 }
+
+/* Utsav public experience polish — scoped to marketing/auth routes only. */
+@keyframes utsav-startup-orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes utsav-startup-progress {
+  0% { transform: translateX(-115%) scaleX(.34); }
+  55% { transform: translateX(8%) scaleX(.72); }
+  100% { transform: translateX(115%) scaleX(.42); }
+}
+@keyframes utsav-startup-arrive {
+  from { opacity: 0; transform: translate3d(0, 12px, 0) scale(.985); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes utsav-public-page-enter {
+  from { opacity: 0; transform: translate3d(0, 16px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes utsav-public-card-enter {
+  from { opacity: 0; transform: translate3d(0, 18px, 0) scale(.985); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes utsav-hero-image-drift {
+  from { transform: scale(1.025); }
+  to { transform: scale(1.105); }
+}
+@keyframes utsav-hero-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -7px, 0); }
+}
+@keyframes utsav-hero-glow-drift {
+  0%, 100% { opacity: .52; transform: scale(.96); }
+  50% { opacity: .88; transform: scale(1.05); }
+}
+@keyframes utsav-progress-fill {
+  from { transform: scaleX(.76); }
+  to { transform: scaleX(1); }
+}
+
+.utsav-startup-screen {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(203, 164, 111, .17), transparent 34%),
+    linear-gradient(135deg, #faf6ee 0%, #f2eadc 52%, #f8f3e9 100%);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 420ms cubic-bezier(.2,.7,.2,1), visibility 420ms;
+}
+.utsav-startup-screen::before,
+.utsav-startup-screen::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+  border: 1px solid rgba(157, 100, 59, .14);
+  border-radius: 50%;
+}
+.utsav-startup-screen::before {
+  width: min(82vw, 780px);
+  aspect-ratio: 1;
+  animation: utsav-startup-orbit 46s linear infinite;
+  background: repeating-conic-gradient(from 0deg, transparent 0deg 14deg, rgba(166, 103, 59, .035) 14deg 14.5deg, transparent 14.5deg 28deg);
+  mask-image: radial-gradient(circle, transparent 0 55%, #000 55.3% 55.6%, transparent 55.9%);
+}
+.utsav-startup-screen::after {
+  width: min(66vw, 620px);
+  aspect-ratio: 1;
+  border-style: dashed;
+  opacity: .65;
+}
+.utsav-startup-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: utsav-startup-arrive 620ms cubic-bezier(.2,.7,.2,1) both;
+}
+.utsav-startup-emblem {
+  position: relative;
+  display: grid;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 14px;
+  place-items: center;
+  border: 1px solid rgba(155, 91, 54, .26);
+  border-radius: 50%;
+  color: #994d37;
+  background: rgba(255, 251, 244, .76);
+  box-shadow: 0 12px 34px rgba(100, 65, 37, .08), inset 0 0 0 5px rgba(183, 133, 83, .06);
+}
+.utsav-startup-orbit {
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(161, 95, 59, .4);
+  border-radius: 50%;
+}
+.utsav-startup-orbit-one { border-style: dashed; animation: utsav-startup-orbit 9s linear infinite; }
+.utsav-startup-orbit-two { inset: 14px; border-color: rgba(185, 141, 81, .6); }
+.utsav-startup-center {
+  font-family: "Noto Sans Devanagari", serif;
+  font-size: 31px;
+  font-weight: 600;
+  line-height: 1;
+}
+.utsav-startup-logo { width: min(230px, 62vw); height: auto; max-height: 58px; object-fit: contain; }
+.utsav-startup-tagline {
+  margin-top: 6px;
+  color: #8b7056;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+.utsav-startup-progress {
+  position: relative;
+  width: 112px;
+  height: 2px;
+  margin-top: 27px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(153, 93, 56, .16);
+}
+.utsav-startup-progress span {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #a85b3b, #c89b5e, #a85b3b);
+  transform-origin: left;
+  animation: utsav-startup-progress 1.05s cubic-bezier(.65,0,.35,1) infinite;
+}
+.utsav-startup-screen.is-leaving { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.utsav-route-stage.utsav-public-route-stage { animation: none; }
+.utsav-public-route-stage main {
+  animation: utsav-public-page-enter 560ms cubic-bezier(.2,.7,.2,1) both;
+}
+.utsav-public-main[data-public-page] { isolation: isolate; }
+.utsav-public-main[data-public-page="home"] .utsav-home-hero {
+  background-image: radial-gradient(ellipse at 82% 24%, rgba(198, 151, 91, .14), transparent 35%), linear-gradient(115deg, #f4eee3 0%, #f7f2e9 55%, #efe4d4 100%);
+}
+.utsav-home-hero::after {
+  position: absolute;
+  z-index: -1;
+  right: -12%;
+  bottom: -48%;
+  width: min(68vw, 760px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(163, 107, 65, .12);
+  border-radius: 50%;
+  content: "";
+  box-shadow: 0 0 0 28px rgba(163, 107, 65, .025), 0 0 0 58px rgba(163, 107, 65, .02);
+  pointer-events: none;
+}
+.utsav-hero-visual { isolation: isolate; }
+.utsav-hero-glow { animation: utsav-hero-glow-drift 8s ease-in-out infinite; }
+.utsav-hero-image-active { animation: utsav-hero-image-drift 7s ease-in-out both; }
+.utsav-hero-visual > .relative {
+  transform: translateZ(0);
+  box-shadow: 0 26px 70px rgba(73, 46, 27, .16);
+}
+.utsav-hero-visual .absolute.-left-5 {
+  animation: utsav-hero-float 5.5s ease-in-out infinite;
+}
+.utsav-hero-visual .absolute.-left-5 p:first-of-type { letter-spacing: -.03em; }
+.utsav-public-main [data-utsav-stagger] > * {
+  transition: transform 360ms cubic-bezier(.2,.7,.2,1), box-shadow 360ms ease, border-color 260ms ease;
+}
+.utsav-public-main .utsav-reveal-visible [data-utsav-stagger] > * {
+  animation: utsav-public-card-enter 620ms cubic-bezier(.2,.7,.2,1) both;
+}
+.utsav-public-main .utsav-reveal-visible [data-utsav-stagger] > *:nth-child(2) { animation-delay: 65ms; }
+.utsav-public-main .utsav-reveal-visible [data-utsav-stagger] > *:nth-child(3) { animation-delay: 120ms; }
+.utsav-public-main .utsav-reveal-visible [data-utsav-stagger] > *:nth-child(4) { animation-delay: 175ms; }
+.utsav-public-main .utsav-reveal-visible [data-utsav-stagger] > *:nth-child(5) { animation-delay: 230ms; }
+.utsav-public-main .utsav-reveal-visible [data-utsav-stagger] > *:nth-child(6) { animation-delay: 285ms; }
+.utsav-public-main [data-utsav-stagger] > article:hover,
+.utsav-public-main [data-utsav-stagger] > div:hover {
+  transform: translate3d(0, -4px, 0);
+}
+.utsav-feature-showcase { background-image: radial-gradient(circle at 88% 15%, rgba(191, 145, 89, .13), transparent 30%); }
+.utsav-product-preview { transform: translateZ(0); animation: utsav-hero-float 7s ease-in-out infinite; }
+.utsav-preview-progress { transform-origin: left; animation: utsav-progress-fill 1.3s cubic-bezier(.2,.7,.2,1) both; }
+.utsav-product-preview > div:nth-child(2) > div { transition: transform 260ms ease, box-shadow 260ms ease; }
+.utsav-product-preview > div:nth-child(2) > div:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(65, 45, 28, .07); }
+.utsav-solution-card { transform: translateZ(0); }
+.utsav-solution-card img,
+.utsav-content-feature-image { backface-visibility: hidden; }
+.utsav-about-showcase img { transition: transform 850ms cubic-bezier(.2,.7,.2,1); }
+.utsav-about-showcase img:hover { transform: scale(1.035); }
+.utsav-pricing-hero { background-image: radial-gradient(ellipse at 50% 0%, rgba(190, 145, 91, .16), transparent 55%); }
+.utsav-public-main[data-public-page="pricing"] [data-utsav-stagger] > article {
+  position: relative;
+  box-shadow: 0 12px 28px rgba(70, 48, 29, .035);
+}
+.utsav-public-main[data-public-page="pricing"] [data-utsav-stagger] > article:nth-child(2) {
+  z-index: 1;
+  box-shadow: 0 22px 48px rgba(70, 48, 29, .11);
+}
+.utsav-public-main[data-public-page="pricing"] [data-utsav-stagger] > article:hover {
+  box-shadow: 0 22px 48px rgba(70, 48, 29, .12);
+}
+.utsav-contact-card { box-shadow: 0 22px 54px rgba(70, 48, 29, .075); transition: box-shadow 320ms ease, transform 320ms ease; }
+.utsav-contact-card:focus-within { box-shadow: 0 26px 64px rgba(70, 48, 29, .12); transform: translateY(-2px); }
+.utsav-public input,
+.utsav-public textarea { transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease; }
+.utsav-public input:focus,
+.utsav-public textarea:focus { box-shadow: 0 0 0 3px rgba(169, 79, 53, .09); }
+.utsav-public header nav a { position: relative; }
+.utsav-public header nav a::after {
+  position: absolute;
+  right: 0;
+  bottom: -7px;
+  left: 0;
+  height: 1px;
+  background: currentColor;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 260ms cubic-bezier(.2,.7,.2,1);
+}
+.utsav-public header nav a:hover::after,
+.utsav-public header nav a[aria-current="page"]::after { transform: scaleX(1); transform-origin: left; }
+.utsav-welcome-dialog { transform-origin: center; }
+.utsav-welcome-dialog .utsav-welcome-mark { filter: drop-shadow(0 7px 12px rgba(149, 89, 53, .09)); }
+
+@media (max-width: 767px) {
+  .utsav-startup-screen::before { width: 112vw; }
+  .utsav-startup-screen::after { width: 88vw; }
+  .utsav-product-preview { animation: none; }
+  .utsav-public-main[data-public-page="pricing"] [data-utsav-stagger] > article:nth-child(2) { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .utsav-startup-screen::before,
+  .utsav-startup-orbit-one,
+  .utsav-startup-content,
+  .utsav-startup-progress span,
+  .utsav-public-route-stage main,
+  .utsav-home-hero::after,
+  .utsav-hero-glow,
+  .utsav-hero-image-active,
+  .utsav-hero-visual .absolute.-left-5,
+  .utsav-public-main .utsav-reveal-visible [data-utsav-stagger] > *,
+  .utsav-product-preview,
+  .utsav-preview-progress {
+    animation: none !important;
+  }
+  .utsav-public-main [data-utsav-stagger] > *,
+  .utsav-solution-card img,
+  .utsav-about-showcase img,
+  .utsav-contact-card,
+  .utsav-public input,
+  .utsav-public textarea,
+  .utsav-public header nav a::after {
+    transition-duration: .01ms !important;
+  }
+}
+
+/* Soft editorial depth on the homepage without changing the Utsav palette. */
+.utsav-public-main[data-public-page="home"] > section:nth-of-type(2) {
+  background-image: radial-gradient(ellipse at 8% 10%, rgba(193, 145, 91, .075), transparent 36%);
+}
+.utsav-public-main[data-public-page="home"] > section:nth-of-type(4) {
+  background-image: linear-gradient(180deg, rgba(242, 235, 223, .28), rgba(255, 255, 255, 0) 62%);
+}
+.utsav-public-main[data-public-page="features"] > section:first-of-type {
+  background-image: radial-gradient(ellipse at 90% 18%, rgba(190, 144, 88, .12), transparent 38%), linear-gradient(115deg, #f4eee3 0%, #f8f3e9 100%);
+}
+.utsav-public-main[data-public-page="solutions"] > section:first-of-type {
+  background-image: radial-gradient(ellipse at 82% 10%, rgba(181, 126, 73, .13), transparent 36%), linear-gradient(115deg, #f4eee3 0%, #f8f3e9 100%);
+}
+.utsav-public-main[data-public-page="about"] > section:first-of-type {
+  background-image: radial-gradient(ellipse at 78% 18%, rgba(181, 126, 73, .13), transparent 36%), linear-gradient(115deg, #f4eee3 0%, #f8f3e9 100%);
+}
