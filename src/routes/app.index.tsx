@@ -1,7 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { getCurrentUser } from "@/lib/auth.functions";
 import { AppShell } from "@/components/eventops/app-shell";
 
 export const Route = createFileRoute("/app/")({
+  beforeLoad: async () => {
+    const user = await getCurrentUser();
+    if (!user) throw redirect({ to: "/login" });
+    if (!user.activeOrganizationId) throw redirect({ to: "/signup" });
+    return { currentUser: user };
+  },
   head: () => ({
     meta: [
       { title: "Utsav Workspace | Overview" },

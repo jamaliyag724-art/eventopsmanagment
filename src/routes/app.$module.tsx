@@ -1,8 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { getCurrentUser } from "@/lib/auth.functions";
 import { AppShell } from "@/components/eventops/app-shell";
 import { modules } from "@/components/eventops/data";
 
 export const Route = createFileRoute("/app/$module")({
+  beforeLoad: async () => {
+    const user = await getCurrentUser();
+    if (!user) throw redirect({ to: "/login" });
+    if (!user.activeOrganizationId) throw redirect({ to: "/signup" });
+    return { currentUser: user };
+  },
   head: ({ params }) => {
     const module = modules.find((item) => item.slug === params.module);
     const title = `${module?.label ?? "Workspace"} | Utsav`;

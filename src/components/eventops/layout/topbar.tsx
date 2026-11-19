@@ -1,6 +1,8 @@
 import type { Dispatch, SetStateAction } from "react";
 import { ChevronDown, ChevronRight, Bell, Menu, Search } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,6 +20,26 @@ type TopbarProps = {
 };
 
 export function Topbar({ title, search, setSearch, setMobileOpen, notificationsOpen, setNotificationsOpen }: TopbarProps) {
+  const navigate = useNavigate();
+  const { data: session } = authClient.useSession();
+  const displayName = session?.user?.name || session?.user?.email || "Utsav account";
+  const initials = displayName
+    .split(/[\s@._-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("") || "U";
+
+  async function handleSignOut() {
+    const result = await authClient.signOut();
+    if (result.error) {
+      toast.error(result.error.message || "Could not sign out. Please try again.");
+      return;
+    }
+    toast.success("You have been signed out.");
+    await navigate({ to: "/login" });
+  }
+
   return (
     <>
         <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-sm md:px-8">
@@ -122,17 +144,17 @@ export function Topbar({ title, search, setSearch, setMobileOpen, notificationsO
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-9 gap-2 px-1.5">
                   <span className="grid h-7 w-7 place-items-center rounded-full bg-secondary text-[10px] font-semibold">
-                    MS
+                    {initials}
                   </span>
                   <span className="hidden text-xs font-medium lg:block">
-                    Meera Shah
+                    {displayName}
                   </span>
                   <ChevronDown className="hidden h-3.5 w-3.5 text-muted-foreground lg:block" />
                 </Button>
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Meera Shah · Owner</DropdownMenuLabel>
+                <DropdownMenuLabel>{displayName}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => toast.success("Profile opened")}
@@ -144,11 +166,7 @@ export function Topbar({ title, search, setSearch, setMobileOpen, notificationsO
                 >
                   Preferences
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    toast.success("Sign-in is simulated in this prototype")
-                  }
-                >
+                <DropdownMenuItem onClick={() => void handleSignOut()}>
                   Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>

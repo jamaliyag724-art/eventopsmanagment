@@ -348,19 +348,11 @@ Use local mock data and frontend state.
 
 Every visible button should have a meaningful frontend interaction. Do not create dead buttons.
 
-## 10. Authentication and Database Restrictions
+## 10. Backend status
 
-For this phase:
+The original frontend-prototype restriction above has been superseded by the Utsav Backend Phase 1 implementation. The project now includes a PostgreSQL + Prisma schema, Better Auth email/password authentication, organization membership, tenant-scoped server helpers, and the first protected Events server functions.
 
-- Do NOT connect PostgreSQL.
-- Do NOT connect Supabase.
-- Do NOT create a real backend.
-- Do NOT implement production authentication.
-- Do NOT claim that demo role switching provides real security.
-
-Use simulated frontend login and sample roles only if required for the prototype.
-
-Keep the data layer organized so that real REST APIs can be integrated later.
+See [BACKEND_SETUP.md](./BACKEND_SETUP.md) before connecting a database or deploying backend changes. Dashboard module data is still demo data until each module is migrated to its server functions.
 
 ## 11. Code Quality
 
@@ -375,19 +367,11 @@ Keep the data layer organized so that real REST APIs can be integrated later.
 - Ensure responsive layouts.
 - Avoid unnecessary dependencies.
 
-## 12. Final Objective
+## 12. Product status
 
-Create a complete, visually cohesive EventOps frontend prototype that looks like a genuine premium software product.
+Utsav's public website and workspace UI are the existing product baseline. Backend work is now in progress, beginning with PostgreSQL, Prisma, Better Auth, organization membership, and tenant-scoped server functions. See [BACKEND_SETUP.md](./BACKEND_SETUP.md) for the implementation scope and deployment steps.
 
-The visual identity must be distinctive, warm and professional.
-
-Do not rush into backend development.
-
-First establish the website structure, navigation, visual identity and major user journeys. We will review and refine the frontend module by module before starting database, authentication, authorization and backend development.
-
-This project was built with [Lovable](https://lovable.dev).
-
-**Live app**: https://eventopsmanagment.lovable.app
+This project was initially scaffolded with [Lovable](https://lovable.dev).
 
 ## Build with Lovable
 
@@ -407,3 +391,8 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+
+## Backend implementation
+
+See [BACKEND_SETUP.md](./BACKEND_SETUP.md) for PostgreSQL, Prisma, Better Auth, Vercel environment variables, database migrations, and the current backend scope.

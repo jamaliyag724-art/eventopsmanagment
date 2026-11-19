@@ -24,6 +24,7 @@ import {
   Truck,
 } from "lucide-react";
 import { toast } from "sonner";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -1540,12 +1541,79 @@ export function ContactPage() {
 export function AuthPage({ signup = false }: { signup?: boolean }) {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { data: existingSession } = authClient.useSession();
   const mainRef = useRef<HTMLElement>(null);
   usePublicReveal(mainRef);
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+
+  function createOrganizationSlug(name: string) {
+    const normalized = name
+      .normalize("NFKD")
+      .toLowerCase()
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 40) || "utsav-workspace";
+    return `${normalized}-${crypto.randomUUID().slice(0, 8)}`;
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    toast.info("Authentication is not connected yet. This is a frontend preview.");
-    void navigate({ to: "/" });
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "").trim().toLowerCase();
+    const password = String(formData.get("password") ?? "");
+    const name = String(formData.get("name") ?? "").trim();
+    const organizationName = String(formData.get("organization") ?? "").trim();
+
+    setIsSubmitting(true);
+    try {
+      if (signup) {
+        // If account creation worked but first-workspace creation failed, an
+        // already signed-in user can retry workspace setup from this same form.
+        if (!existingSession?.user) {
+          const signUpResult = await authClient.signUp.email({ name, email, password });
+          if (signUpResult.error) throw new Error(signUpResult.error.message);
+        }
+
+        const organizationResult = await authClient.organization.create({
+          name: organizationName,
+          slug: createOrganizationSlug(organizationName),
+          keepCurrentActiveOrganization: false,
+        });
+        if (organizationResult.error || !organizationResult.data) {
+          throw new Error(organizationResult.error?.message ?? "Your account exists, but the workspace could not be created. Please retry.");
+        }
+
+        const activeResult = await authClient.organization.setActive({
+          organizationId: organizationResult.data.id,
+        });
+        if (activeResult.error) throw new Error(activeResult.error.message);
+      } else {
+        const signInResult = await authClient.signIn.email({ email, password });
+        if (signInResult.error) throw new Error(signInResult.error.message);
+
+        const organizationsResult = await authClient.organization.list();
+        if (organizationsResult.error) throw new Error(organizationsResult.error.message);
+        const firstOrganization = organizationsResult.data?.[0];
+        if (!firstOrganization) {
+          // Keep the valid session: the signup page can then create the first
+          // workspace without asking the user to register the same email again.
+          throw new Error("No workspace is linked to this account yet. Use Create an account to set up your first workspace.");
+        }
+
+        const activeResult = await authClient.organization.setActive({
+          organizationId: firstOrganization.id,
+        });
+        if (activeResult.error) throw new Error(activeResult.error.message);
+      }
+
+      toast.success(signup ? "Your Utsav workspace is ready." : "Signed in successfully.");
+      await navigate({ to: "/app" });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Authentication failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
   return (
     <main
@@ -1607,9 +1675,9 @@ export function AuthPage({ signup = false }: { signup?: boolean }) {
                   required
                   type={showPassword ? "text" : "password"}
                   name="password"
-                  minLength={8}
+                  minLength={12}
                   autoComplete={signup ? "new-password" : "current-password"}
-                  placeholder="At least 8 characters"
+                  placeholder="At least 12 characters"
                   className="h-11 rounded-sm pr-20"
                 />
                 <button
@@ -1621,8 +1689,8 @@ export function AuthPage({ signup = false }: { signup?: boolean }) {
                 </button>
               </div>
             </label>
-            <Button type="submit" className="h-11 w-full rounded-sm text-xs">
-              {signup ? "Create preview workspace" : "Sign in"}{" "}
+            <Button type="submit" disabled={isSubmitting} className="h-11 w-full rounded-sm text-xs">
+              {isSubmitting ? "Please wait…" : signup ? "Create workspace" : "Sign in"}{" "}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </form>
@@ -1633,8 +1701,7 @@ export function AuthPage({ signup = false }: { signup?: boolean }) {
             </Link>
           </p>
           <p className="mt-7 text-center text-[10px] leading-relaxed text-muted-foreground">
-            Demo interface only. Account creation and sign-in will be enabled when the backend is
-            connected.
+            Secure account access for your organization. Use at least 12 characters for your password.
           </p>
         </div>
         <p className="text-[10px] text-muted-foreground">© {new Date().getFullYear()} Utsav</p>

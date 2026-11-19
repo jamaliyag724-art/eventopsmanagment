@@ -1,7 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { getCurrentUser } from "@/lib/auth.functions";
 import { AppShell } from "@/components/eventops/app-shell";
 
 export const Route = createFileRoute("/admin")({
+  beforeLoad: async () => {
+    const user = await getCurrentUser();
+    if (!user) throw redirect({ to: "/login" });
+    if (user.platformRole !== "PLATFORM_ADMIN") throw redirect({ to: "/app" });
+    return { currentUser: user };
+  },
   head: () => ({ meta: [
     { title: "Platform Administration | Utsav" },
     { name: "description", content: "Review organizations, subscriptions, users, and platform activity in the Utsav demo administration area." },
