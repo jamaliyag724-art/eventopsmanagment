@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ElementType, ReactNode } from "react";
 import {
   ShieldCheck,
@@ -34,7 +34,6 @@ import {
   events,
   tasks,
   vendors,
-  activities,
   budgetSeries,
   moduleDescriptions,
 } from "./data";
@@ -61,6 +60,11 @@ import { Progress } from "@/components/ui/progress";
 import { ModuleWorkspace } from "./modules/module-workspace";
 import { EventCoverImage } from "./event-cover-image";
 import { AdminPage } from "./admin/admin-page";
+import {
+  createOrganizationEvent,
+  listOrganizationEvents,
+} from "@/lib/events.functions";
+import { getOrganizationOverview } from "@/lib/overview.functions";
 
 export function AppShell({
   module = "overview",
@@ -200,18 +204,6 @@ function SectionTitle({
   );
 }
 
-function parseEventDate(date: string) {
-  // Demo dates are stored as values such as "Nov 19, 2026".
-  return new Date(`${date} 00:00:00`);
-}
-
-function isUpcomingEvent(event: (typeof events)[number]) {
-  const eventDate = parseEventDate(event.date);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return eventDate >= today && event.status !== "Completed";
-}
-
 function formatToday() {
   return new Intl.DateTimeFormat("en-IN", {
     weekday: "long",
@@ -221,16 +213,76 @@ function formatToday() {
   }).format(new Date());
 }
 
+type OverviewData = Awaited<ReturnType<typeof getOrganizationOverview>>;
+
+function formatCompactINR(amount: number): string {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    notation: "compact",
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+function formatRelativeTime(value: string): string {
+  const timestamp = new Date(value).getTime();
+  const difference = Math.max(0, Date.now() - timestamp);
+  const minutes = Math.floor(difference / 60_000);
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
 function Overview({ search }: { search: string }) {
-  const [range, setRange] = useState("6 months");
-  const upcomingEvents = events.filter(isUpcomingEvent);
-  const filteredEvents = upcomingEvents.filter((event) =>
-    `${event.name} ${event.type} ${event.venue}`.toLowerCase().includes(search.toLowerCase()),
+  const [overview, setOverview] = useState<OverviewData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const loadOverview = async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const result = await getOrganizationOverview();
+      setOverview(result);
+    } catch (error) {
+      console.error("Failed to load organization overview:", error);
+      setLoadError(
+        error instanceof Error ? error.message : "Could not load workspace overview.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadOverview();
+  }, []);
+
+  const metrics = overview?.metrics;
+  const normalizedSearch = search.trim().toLowerCase();
+  const filteredEvents = (overview?.upcomingEvents ?? [])
+    .map(mapDatabaseEvent)
+    .filter((event) =>
+      `${event.name} ${event.type} ${event.venue}`.toLowerCase().includes(normalizedSearch),
+    );
+  const filteredActivity = (overview?.recentActivity ?? []).filter((item) =>
+    `${item.who} ${item.action} ${item.entity}`.toLowerCase().includes(normalizedSearch),
   );
-  const filteredActivity = activities.filter((item) =>
-    `${item.who} ${item.action} ${item.event}`.toLowerCase().includes(search.toLowerCase()),
+  const filteredTasks = (overview?.upcomingTasks ?? []).filter((task) =>
+    `${task.title} ${task.eventName} ${task.assigneeName}`.toLowerCase().includes(normalizedSearch),
   );
-  const activeTasks = tasks.filter((task) => task.status !== "Done").length;
+  const chartData = (overview?.budgetSeries ?? []).map((item) => ({
+    month: item.month,
+    planned: item.planned / 100000,
+    actual: item.actual / 100000,
+  }));
+  const completionRate =
+    metrics && metrics.totalTasks > 0
+      ? Math.round((metrics.doneTasks / metrics.totalTasks) * 100)
+      : 0;
 
   return (
     <div className="space-y-7">
@@ -249,24 +301,33 @@ function Overview({ search }: { search: string }) {
             Your event portfolio at a glance. See what is approaching, what is progressing, and what needs your attention.
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <NewEventDialog />
-            <span className="text-[10px] text-white/45">Demo workspace · Sample data</span>
+            <NewEventDialog onCreated={loadOverview} />
+            <span className="text-[10px] text-white/45">
+              {loading ? "Loading live workspace data…" : "Live organization data"}
+            </span>
           </div>
         </div>
         <div className="mt-8 grid max-w-xl grid-cols-3 gap-3 border-t border-white/15 pt-5 md:mt-0 md:absolute md:bottom-8 md:right-8 md:w-[310px] md:border-l md:border-t-0 md:pl-6">
-          <div><p className="text-[10px] text-white/50">Upcoming</p><p className="mt-1 text-2xl font-semibold">{upcomingEvents.length}</p></div>
-          <div><p className="text-[10px] text-white/50">Active tasks</p><p className="mt-1 text-2xl font-semibold">{activeTasks}</p></div>
-          <div><p className="text-[10px] text-white/50">Approvals</p><p className="mt-1 text-2xl font-semibold">3</p></div>
+          <div><p className="text-[10px] text-white/50">Upcoming</p><p className="mt-1 text-2xl font-semibold">{metrics?.upcomingEvents ?? "—"}</p></div>
+          <div><p className="text-[10px] text-white/50">Active tasks</p><p className="mt-1 text-2xl font-semibold">{metrics?.activeTasks ?? "—"}</p></div>
+          <div><p className="text-[10px] text-white/50">Approvals</p><p className="mt-1 text-2xl font-semibold">{metrics?.pendingApprovals ?? "—"}</p></div>
         </div>
       </section>
 
+      {loadError && (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm">
+          <p className="font-semibold">Could not load live overview data</p>
+          <p className="mt-1 text-muted-foreground">{loadError}</p>
+        </div>
+      )}
+
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
-        <Stat label="Total events" value={String(events.length)} delta="In this demo" icon={CalendarDays} />
-        <Stat label="Upcoming" value={String(upcomingEvents.length)} delta="Future events" icon={CalendarDays} tone="accent" />
-        <Stat label="Active tasks" value={String(activeTasks)} delta="Sample task list" icon={ClipboardList} />
-        <Stat label="Total budget" value="₹9.42 Cr" delta="Across active events" icon={Wallet} />
-        <Stat label="Actual expenses" value="₹6.14 Cr" delta="65% utilized" icon={Wallet} tone="accent" />
-        <Stat label="Approvals" value="3" delta="Need your review" icon={Activity} />
+        <Stat label="Total events" value={loading ? "—" : String(metrics?.totalEvents ?? 0)} delta="In this workspace" icon={CalendarDays} />
+        <Stat label="Upcoming" value={loading ? "—" : String(metrics?.upcomingEvents ?? 0)} delta="Scheduled ahead" icon={CalendarDays} tone="accent" />
+        <Stat label="Active tasks" value={loading ? "—" : String(metrics?.activeTasks ?? 0)} delta="Not yet completed" icon={ClipboardList} />
+        <Stat label="Total budget" value={loading ? "—" : formatCompactINR(metrics?.totalBudget ?? 0)} delta="Across all events" icon={Wallet} />
+        <Stat label="Actual expenses" value={loading ? "—" : formatCompactINR(metrics?.actualExpenses ?? 0)} delta={`${(metrics?.budgetUtilization ?? 0).toFixed(1)}% of event budget`} icon={Wallet} tone="accent" />
+        <Stat label="Approvals" value={loading ? "—" : String(metrics?.pendingApprovals ?? 0)} delta="Submitted expenses" icon={Activity} />
       </section>
 
       <div className="grid items-start gap-6 2xl:grid-cols-[minmax(0,1.65fr)_minmax(310px,0.85fr)]">
@@ -275,10 +336,12 @@ function Overview({ search }: { search: string }) {
             <SectionTitle action={<Link to="/app/$module" params={{ module: "events" }} className="text-xs font-semibold text-primary hover:underline">All events ↗</Link>}>
               Upcoming events
             </SectionTitle>
-            {filteredEvents.length ? (
+            {loading ? (
+              <div className="rounded-xl border border-dashed border-border bg-card px-4 py-10 text-center text-xs text-muted-foreground">Loading upcoming events…</div>
+            ) : filteredEvents.length ? (
               <div className="grid gap-4 sm:grid-cols-2">
-                {filteredEvents.slice(0, 4).map((event, index) => (
-                  <article key={event.name} className="group overflow-hidden rounded-xl border border-border/80 bg-card shadow-[0_2px_12px_rgba(38,32,24,0.035)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(38,32,24,0.08)]">
+                {filteredEvents.map((event, index) => (
+                  <article key={event.id} className="group overflow-hidden rounded-xl border border-border/80 bg-card shadow-[0_2px_12px_rgba(38,32,24,0.035)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(38,32,24,0.08)]">
                     <div className="relative h-36 overflow-hidden bg-secondary">
                       <EventCoverImage src={getEventCoverImage(event)} alt={`${event.name} — ${event.type} event in India`} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" loading={index < 2 ? "eager" : "lazy"} />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/5" />
@@ -306,61 +369,90 @@ function Overview({ search }: { search: string }) {
 
           <section className="grid gap-5 lg:grid-cols-2">
             <div className="rounded-xl border border-border/80 bg-card p-5 shadow-[0_2px_12px_rgba(38,32,24,0.035)]">
-              <SectionTitle action={<Select value={range} onValueChange={setRange}><SelectTrigger className="h-7 w-[105px] text-[10px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="6 months">6 months</SelectItem><SelectItem value="This year">This year</SelectItem><SelectItem value="This quarter">This quarter</SelectItem></SelectContent></Select>}>
-                Budget utilization
-              </SectionTitle>
-              <div className="mb-2 flex items-baseline gap-2"><strong className="text-[27px] font-semibold tracking-[-0.8px]">65%</strong><span className="text-[10px] text-muted-foreground">of allocated budget</span></div>
+              <SectionTitle>Budget utilization · last 6 months · ₹ lakh</SectionTitle>
+              <div className="mb-2 flex items-baseline gap-2"><strong className="text-[27px] font-semibold tracking-[-0.8px]">{loading ? "—" : `${(metrics?.budgetUtilization ?? 0).toFixed(1)}%`}</strong><span className="text-[10px] text-muted-foreground">paid expenses against event budgets</span></div>
               <div className="h-[190px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={budgetSeries} margin={{ top: 8, right: 4, left: -24, bottom: 0 }}>
+                  <AreaChart data={chartData} margin={{ top: 8, right: 4, left: -24, bottom: 0 }}>
                     <defs><linearGradient id="planned-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--color-chart-3)" stopOpacity={0.2} /><stop offset="100%" stopColor="var(--color-chart-3)" stopOpacity={0} /></linearGradient></defs>
                     <CartesianGrid stroke="var(--color-border)" vertical={false} />
                     <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: "var(--color-muted-foreground)" }} />
                     <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 9, fill: "var(--color-muted-foreground)" }} />
                     <Tooltip contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 9, fontSize: 11 }} />
                     <Area type="monotone" dataKey="planned" name="Planned" stroke="var(--color-chart-3)" fill="url(#planned-fill)" strokeWidth={1.8} />
-                    <Area type="monotone" dataKey="actual" name="Actual" stroke="var(--color-primary)" fill="transparent" strokeWidth={2.2} />
+                    <Area type="monotone" dataKey="actual" name="Paid" stroke="var(--color-primary)" fill="transparent" strokeWidth={2.2} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-              <div className="mt-2 flex gap-4 text-[10px] text-muted-foreground"><span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-chart-3" />Planned</span><span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-primary" />Actual</span></div>
+              <div className="mt-2 flex gap-4 text-[10px] text-muted-foreground"><span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-chart-3" />Planned event budgets</span><span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-primary" />Paid expenses</span></div>
             </div>
 
             <div className="rounded-xl border border-border/80 bg-card p-5 shadow-[0_2px_12px_rgba(38,32,24,0.035)]">
               <SectionTitle>Task completion</SectionTitle>
-              <div className="flex items-end justify-between"><div><strong className="text-[27px] font-semibold tracking-[-0.8px]">78%</strong><p className="mt-0.5 text-[10px] text-muted-foreground">of tasks on track</p></div><span className="text-[10px] text-muted-foreground">486 total tasks</span></div>
-              <div className="mt-6 flex h-3 w-full overflow-hidden rounded-full bg-secondary"><span className="bg-primary" style={{ width: "55%" }} /><span className="bg-chart-2" style={{ width: "23%" }} /><span className="bg-secondary" style={{ width: "17%" }} /><span className="bg-chart-4" style={{ width: "5%" }} /></div>
-              <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-3 text-[10px]">
-                {[{ label: "Complete", count: "267", color: "bg-primary" }, { label: "In progress", count: "112", color: "bg-chart-2" }, { label: "To do", count: "83", color: "bg-muted-foreground/30" }, { label: "At risk", count: "24", color: "bg-chart-4" }].map((item) => <div key={item.label} className="flex items-center gap-2"><i className={`h-2 w-2 rounded-full ${item.color}`} /><span className="text-muted-foreground">{item.label}</span><b className="ml-auto">{item.count}</b></div>)}
+              <div className="flex items-end justify-between"><div><strong className="text-[27px] font-semibold tracking-[-0.8px]">{loading ? "—" : `${completionRate}%`}</strong><p className="mt-0.5 text-[10px] text-muted-foreground">completed tasks</p></div><span className="text-[10px] text-muted-foreground">{metrics?.totalTasks ?? 0} total tasks</span></div>
+              <div className="mt-6 flex h-3 w-full overflow-hidden rounded-full bg-secondary">
+                <span className="bg-primary" style={{ width: `${metrics && metrics.totalTasks ? (metrics.doneTasks / metrics.totalTasks) * 100 : 0}%` }} />
+                <span className="bg-chart-2" style={{ width: `${metrics && metrics.totalTasks ? (metrics.inProgressTasks / metrics.totalTasks) * 100 : 0}%` }} />
+                <span className="bg-secondary" style={{ width: `${metrics && metrics.totalTasks ? (metrics.todoTasks / metrics.totalTasks) * 100 : 0}%` }} />
+                <span className="bg-chart-4" style={{ width: `${metrics && metrics.totalTasks ? (metrics.blockedTasks / metrics.totalTasks) * 100 : 0}%` }} />
               </div>
-              <div className="mt-6 rounded-lg bg-secondary/65 p-3"><p className="text-[10px] leading-relaxed text-muted-foreground">Task metrics are illustrative sample data for this prototype.</p></div>
+              <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-3 text-[10px]">
+                {[{ label: "Complete", count: metrics?.doneTasks ?? 0, color: "bg-primary" }, { label: "In progress", count: metrics?.inProgressTasks ?? 0, color: "bg-chart-2" }, { label: "To do", count: metrics?.todoTasks ?? 0, color: "bg-muted-foreground/30" }, { label: "Blocked", count: metrics?.blockedTasks ?? 0, color: "bg-chart-4" }].map((item) => <div key={item.label} className="flex items-center gap-2"><i className={`h-2 w-2 rounded-full ${item.color}`} /><span className="text-muted-foreground">{item.label}</span><b className="ml-auto">{loading ? "—" : item.count}</b></div>)}
+              </div>
             </div>
           </section>
         </div>
 
         <aside className="grid content-start gap-5 sm:grid-cols-2 2xl:grid-cols-1">
           <section className="rounded-xl border border-border/80 bg-card p-5 shadow-[0_2px_12px_rgba(38,32,24,0.035)]">
-            <SectionTitle action={<button onClick={() => toast.info("Showing all activity")} className="text-[10px] font-semibold text-primary hover:underline">View all</button>}>Recent activity</SectionTitle>
-            <div className="divide-y divide-border/70">
-              {filteredActivity.slice(0, 5).map((item) => <div key={item.who + item.action} className="flex gap-3 py-3 first:pt-0 last:pb-0"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-secondary text-[10px] font-semibold">{item.initials}</span><div className="min-w-0 flex-1 text-[11px] leading-relaxed"><b>{item.who}</b> {item.action}<div className="truncate text-muted-foreground">{item.event}</div></div><span className="shrink-0 text-[9px] text-muted-foreground">{item.time}</span></div>)}
-            </div>
+            <SectionTitle>Recent activity</SectionTitle>
+            {loading ? (
+              <p className="text-xs text-muted-foreground">Loading activity…</p>
+            ) : filteredActivity.length ? (
+              <div className="divide-y divide-border/70">
+                {filteredActivity.slice(0, 5).map((item) => (
+                  <div key={item.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-secondary text-[10px] font-semibold">{item.who.split(" ").map((part) => part[0]).slice(0, 2).join("").toUpperCase()}</span>
+                    <div className="min-w-0 flex-1 text-[11px] leading-relaxed"><b>{item.who}</b> {item.action}<div className="truncate text-muted-foreground">{item.entity}</div></div>
+                    <span className="shrink-0 text-[9px] text-muted-foreground">{formatRelativeTime(item.time)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">No activity recorded yet.</p>
+            )}
           </section>
 
           <section className="rounded-xl border border-border/80 bg-card p-5 shadow-[0_2px_12px_rgba(38,32,24,0.035)]">
             <SectionTitle action={<Link to="/app/$module" params={{ module: "planning" }} className="text-[10px] font-semibold text-primary hover:underline">Task list ↗</Link>}>Coming up</SectionTitle>
-            <div className="space-y-3">
-              {tasks.filter((task) => task.status !== "Done").slice(0, 4).map((task) => <div key={task.title} className="flex gap-3"><span className={`mt-0.5 h-4 w-4 shrink-0 rounded border ${task.priority === "High" ? "border-primary bg-primary/10" : "border-border"}`} /><div className="min-w-0 flex-1"><div className="text-[11px] font-medium leading-snug">{task.title}</div><div className="mt-1 truncate text-[10px] text-muted-foreground">{task.event} · {task.owner}</div></div><span className="shrink-0 text-[10px] text-muted-foreground">{task.due}</span></div>)}
-            </div>
+            {loading ? (
+              <p className="text-xs text-muted-foreground">Loading tasks…</p>
+            ) : filteredTasks.length ? (
+              <div className="space-y-3">
+                {filteredTasks.slice(0, 4).map((task) => (
+                  <div key={task.id} className="flex gap-3">
+                    <span className={`mt-0.5 h-4 w-4 shrink-0 rounded border ${task.priority === "HIGH" || task.priority === "URGENT" ? "border-primary bg-primary/10" : "border-border"}`} />
+                    <div className="min-w-0 flex-1"><div className="text-[11px] font-medium leading-snug">{task.title}</div><div className="mt-1 truncate text-[10px] text-muted-foreground">{task.eventName} · {task.assigneeName}</div></div>
+                    <span className="shrink-0 text-[10px] text-muted-foreground">{task.dueAt ? formatEventDate(task.dueAt) : "No due date"}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">No open tasks with due dates.</p>
+            )}
           </section>
 
           <section className="rounded-xl border border-border/80 bg-card p-5 shadow-[0_2px_12px_rgba(38,32,24,0.035)] sm:col-span-2 2xl:col-span-1">
-            <SectionTitle>Needs attention <Badge variant="outline" className="ml-1 h-5 px-1.5 text-[9px]">3</Badge></SectionTitle>
-            <div className="divide-y divide-border/70">
-              <AlertRow title="Budget approval requested" detail="Bengaluru Innovation Forum · Scenic" label="Review" />
-              <AlertRow title="Resource conflict detected" detail="Delhi University Spring Utsav · Main stage" label="Resolve" />
-              <AlertRow title="Insurance certificate expiring" detail="Goodway Guest Travel · Nov 28" label="View" />
-            </div>
-            <p className="mt-3 text-[9px] text-muted-foreground">Alerts are simulated prototype content.</p>
+            <SectionTitle>Needs attention <Badge variant="outline" className="ml-1 h-5 px-1.5 text-[9px]">{overview?.attentionItems.length ?? 0}</Badge></SectionTitle>
+            {overview?.attentionItems.length ? (
+              <div className="divide-y divide-border/70">
+                {overview.attentionItems.map((item) => (
+                  <AlertRow key={item.id} title={item.title} detail={item.detail} label={item.label} />
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">{loading ? "Checking workspace…" : "No outstanding items need attention."}</p>
+            )}
           </section>
         </aside>
       </div>
@@ -422,25 +514,65 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function NewEventDialog() {
+function NewEventDialog({
+  onCreated,
+}: {
+  onCreated?: () => void | Promise<void>;
+} = {}) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
+  const [type, setType] = useState("Conference");
+  const [city, setCity] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  const create = () => {
-    if (name.trim().length < 3 || !date) {
-      toast.error("Add an event name and date to continue");
+  const resetForm = () => {
+    setName("");
+    setDate("");
+    setType("Conference");
+    setCity("");
+  };
+
+  const create = async () => {
+    if (name.trim().length < 2 || !date || city.trim().length < 2) {
+      toast.error("Enter an event name, date and city to continue.");
       return;
     }
 
-    toast.success(`${name} added to your event list`);
-    setName("");
-    setDate("");
-    setOpen(false);
+    setSaving(true);
+    try {
+      await createOrganizationEvent({
+        data: {
+          name: name.trim(),
+          eventType: type,
+          startAt: new Date(`${date}T12:00:00+05:30`).toISOString(),
+          timezone: "Asia/Kolkata",
+          city: city.trim(),
+        },
+      });
+
+      toast.success(`${name.trim()} saved to your workspace.`);
+      await onCreated?.();
+      resetForm();
+      setOpen(false);
+    } catch (error) {
+      console.error("Failed to create event:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Could not create the event.",
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+        if (!nextOpen && !saving) resetForm();
+      }}
+    >
       <DialogTrigger asChild>
         <Button className="h-9 gap-2 rounded-sm px-3 text-xs">
           <Plus className="h-4 w-4" />
@@ -452,8 +584,7 @@ function NewEventDialog() {
         <DialogHeader>
           <DialogTitle>Create an event</DialogTitle>
           <DialogDescription>
-            Start with the essentials. You can add a team, venue and budget
-            later.
+            Add the essential details. The event will be saved to your organization workspace.
           </DialogDescription>
         </DialogHeader>
 
@@ -464,7 +595,7 @@ function NewEventDialog() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Winter partner summit"
-              minLength={3}
+              minLength={2}
             />
           </label>
 
@@ -479,7 +610,7 @@ function NewEventDialog() {
 
           <label className="grid gap-1.5 text-xs font-medium">
             Event type
-            <Select defaultValue="Conference">
+            <Select value={type} onValueChange={setType}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -490,29 +621,74 @@ function NewEventDialog() {
                   "Festival",
                   "Company meeting",
                   "Partner forum",
-                ].map((type) => (
-                  <SelectItem value={type} key={type}>
-                    {type}
+                ].map((item) => (
+                  <SelectItem value={item} key={item}>
+                    {item}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </label>
+
+          <label className="grid gap-1.5 text-xs font-medium">
+            City
+            <Input
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              placeholder="e.g. Ahmedabad"
+            />
+          </label>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
             Cancel
           </Button>
-          <Button onClick={create}>Create event</Button>
+          <Button onClick={create} disabled={saving}>
+            {saving ? "Saving..." : "Create event"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
+type DatabaseEvent = Awaited<ReturnType<typeof listOrganizationEvents>>[number];
 
-type EventRecord = (typeof events)[number];
+type EventRecord = {
+  id: string;
+  name: string;
+  type: string;
+  coverImageKey: string;
+  date: string;
+  venue: string;
+  status: string;
+  budget: string;
+  progress: number;
+};
+
+function mapDatabaseEvent(event: DatabaseEvent): EventRecord {
+  const statusLabels: Record<string, string> = {
+    DRAFT: "Draft",
+    PLANNING: "In planning",
+    CONFIRMED: "Confirmed",
+    IN_PROGRESS: "In progress",
+    COMPLETED: "Completed",
+    CANCELLED: "Cancelled",
+  };
+
+  return {
+    id: event.id,
+    name: event.name,
+    type: event.eventType,
+    coverImageKey: eventCoverKeyByType[event.eventType] ?? "default",
+    date: formatEventDate(event.startAt),
+    venue: [event.venueName, event.city].filter((value): value is string => Boolean(value)).join(" · "),
+    status: statusLabels[event.status] ?? event.status,
+    budget: event.budget === null ? "—" : formatINR(Number(event.budget)),
+    progress: event.status === "COMPLETED" ? 100 : 0,
+  };
+}
 
 const eventCoverImages: Record<string, string> = {
   conference: "/utsav-conference.webp",
@@ -537,7 +713,9 @@ const eventCoverKeyByType: Record<string, string> = {
   "Partner forum": "exhibition",
 };
 
-function getEventCoverImage(event: EventRecord): string {
+function getEventCoverImage(
+  event: Pick<EventRecord, "type" | "coverImageKey">,
+): string {
   const key = event.coverImageKey || eventCoverKeyByType[event.type] || "default";
   return eventCoverImages[key] ?? eventCoverImages["default"]!;
 }
@@ -569,7 +747,10 @@ function formatINR(amount: number): string {
 }
 
 function EventsPage({ search }: { search: string }) {
-  const [eventItems, setEventItems] = useState<EventRecord[]>(events);
+  const [eventItems, setEventItems] = useState<EventRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [view, setView] = useState<"Grid" | "List">("Grid");
   const [filter, setFilter] = useState("All");
   const [sort, setSort] = useState("Date: soonest");
@@ -579,7 +760,28 @@ function EventsPage({ search }: { search: string }) {
   const [date, setDate] = useState("");
   const [type, setType] = useState("Conference");
   const [venue, setVenue] = useState("");
+  const [city, setCity] = useState("");
   const [budget, setBudget] = useState("");
+
+  const loadEvents = async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const records = await listOrganizationEvents();
+      setEventItems(records.map(mapDatabaseEvent));
+    } catch (error) {
+      console.error("Failed to load organization events:", error);
+      setLoadError(
+        error instanceof Error ? error.message : "Could not load events.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadEvents();
+  }, []);
 
   const normalizedSearch = search.trim().toLowerCase();
   const filteredEvents = eventItems
@@ -603,42 +805,57 @@ function EventsPage({ search }: { search: string }) {
     (event) => event.status !== "Completed" && new Date(event.date) >= new Date(new Date().setHours(0, 0, 0, 0)),
   ).length;
   const completedCount = eventItems.filter((event) => event.status === "Completed").length;
-  const atRiskCount = eventItems.filter((event) => event.status === "At risk").length;
+  const cancelledCount = eventItems.filter((event) => event.status === "Cancelled").length;
   const totalBudget = eventItems.reduce(
     (sum, event) => sum + (parseBudgetAmount(event.budget) ?? 0),
     0,
   );
 
-  const createEvent = () => {
-    if (name.trim().length < 3 || !date || !venue.trim()) {
-      toast.error("Enter an event name, date and venue.");
+  const createEvent = async () => {
+    if (name.trim().length < 2 || !date || !city.trim()) {
+      toast.error("Enter an event name, date and city.");
       return;
     }
+
     const budgetAmount = parseBudgetAmount(budget);
     if (budgetAmount === null) {
       toast.error("Enter a valid non-negative budget, for example 250000 or ₹2,50,000.");
       return;
     }
-    const formattedDate = formatEventDate(`${date}T12:00:00`);
-    const newEvent: EventRecord = {
-      name: name.trim(),
-      type,
-      coverImageKey: eventCoverKeyByType[type] ?? "default",
-      date: formattedDate,
-      venue: venue.trim(),
-      status: "In planning",
-      budget: formatINR(budgetAmount),
-      progress: 0,
-    };
-    setEventItems((current) => [newEvent, ...current]);
-    setName("");
-    setDate("");
-    setType("Conference");
-    setVenue("");
-    setBudget("");
-    setCreateOpen(false);
-    setFilter("All");
-    toast.success("Event added to this demo workspace.");
+
+    setSaving(true);
+    try {
+      await createOrganizationEvent({
+        data: {
+          name: name.trim(),
+          eventType: type,
+          startAt: new Date(`${date}T12:00:00+05:30`).toISOString(),
+          timezone: "Asia/Kolkata",
+          venueName: venue.trim() || undefined,
+          city: city.trim(),
+          budget: budget.trim() ? budgetAmount : undefined,
+          currency: "INR",
+        },
+      });
+
+      await loadEvents();
+      setName("");
+      setDate("");
+      setType("Conference");
+      setVenue("");
+      setCity("");
+      setBudget("");
+      setCreateOpen(false);
+      setFilter("All");
+      toast.success("Event saved to your organization workspace.");
+    } catch (error) {
+      console.error("Failed to create event:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Could not create the event.",
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -659,7 +876,7 @@ function EventsPage({ search }: { search: string }) {
           { label: "Total events", value: eventItems.length, note: "In this workspace", icon: CalendarDays },
           { label: "Upcoming", value: upcomingCount, note: "Scheduled ahead", icon: CalendarCheck2 },
           { label: "Completed", value: completedCount, note: "Successfully delivered", icon: ClipboardList },
-          { label: "At risk", value: atRiskCount, note: "Needs attention", icon: Activity },
+          { label: "Cancelled", value: cancelledCount, note: "Cancelled events", icon: Activity },
         ].map((item, index) => (
           <div key={item.label} className="rounded-xl border border-border/80 bg-card p-4 shadow-[0_2px_12px_rgba(38,32,24,0.035)]">
             <div className="flex items-center justify-between gap-2">
@@ -686,7 +903,7 @@ function EventsPage({ search }: { search: string }) {
             <Select value={filter} onValueChange={setFilter}>
               <SelectTrigger className="h-9 w-[145px] text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {["All", "In planning", "Confirmed", "At risk", "Completed"].map((status) => (
+                {["All", "Draft", "In planning", "Confirmed", "In progress", "Completed", "Cancelled"].map((status) => (
                   <SelectItem key={status} value={status}>{status === "All" ? "All statuses" : status}</SelectItem>
                 ))}
               </SelectContent>
@@ -709,7 +926,19 @@ function EventsPage({ search }: { search: string }) {
           </div>
         </div>
 
-        {filteredEvents.length === 0 ? (
+        {loading ? (
+          <div className="mt-5 rounded-lg border border-dashed border-border px-4 py-14 text-center text-xs text-muted-foreground">
+            Loading events from your workspace...
+          </div>
+        ) : loadError ? (
+          <div className="mt-5 rounded-lg border border-dashed border-destructive/40 px-4 py-10 text-center">
+            <p className="text-sm font-medium">Could not load events</p>
+            <p className="mt-2 text-xs text-muted-foreground">{loadError}</p>
+            <Button variant="outline" size="sm" className="mt-4" onClick={() => void loadEvents()}>
+              Retry
+            </Button>
+          </div>
+        ) : filteredEvents.length === 0 ? (
           <div className="mt-5 rounded-lg border border-dashed border-border px-4 py-14 text-center">
             <Search className="mx-auto h-5 w-5 text-muted-foreground" />
             <p className="mt-3 text-sm font-medium">No events found</p>
@@ -721,7 +950,7 @@ function EventsPage({ search }: { search: string }) {
         ) : view === "Grid" ? (
           <div className="mt-5 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
             {filteredEvents.map((event, index) => (
-              <article key={`${event.name}-${event.date}`} className="group overflow-hidden rounded-xl border border-border/80 bg-background transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(38,32,24,0.08)]">
+              <article key={event.id} className="group overflow-hidden rounded-xl border border-border/80 bg-background transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(38,32,24,0.08)]">
                 <div className="relative h-40 overflow-hidden bg-secondary">
                   <EventCoverImage
                     src={getEventCoverImage(event)}
@@ -764,7 +993,7 @@ function EventsPage({ search }: { search: string }) {
               </thead>
               <tbody>
                 {filteredEvents.map((event) => (
-                  <tr key={`${event.name}-${event.date}`} className="border-t border-border/70 hover:bg-secondary/25">
+                  <tr key={event.id} className="border-t border-border/70 hover:bg-secondary/25">
                     <td className="px-4 py-3"><p className="text-xs font-semibold">{event.name}</p><p className="mt-0.5 text-[10px] text-muted-foreground">{event.type}</p></td>
                     <td className="px-4 py-3 text-[11px] text-muted-foreground">{event.date}</td>
                     <td className="px-4 py-3 text-[11px] text-muted-foreground">{event.venue}</td>
@@ -784,7 +1013,7 @@ function EventsPage({ search }: { search: string }) {
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>Create a new event</DialogTitle>
-            <DialogDescription>Add the core event details. This prototype stores new events in local page state only.</DialogDescription>
+            <DialogDescription>Event details are saved to your organization database.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-2 sm:grid-cols-2">
             <label className="grid gap-1.5 text-xs font-medium sm:col-span-2">Event name
@@ -799,16 +1028,19 @@ function EventsPage({ search }: { search: string }) {
                 <SelectContent>{["Conference", "Gala dinner", "Public festival", "Company meeting", "Partner forum", "Exhibition", "Wedding", "Sports event"].map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
               </Select>
             </label>
-            <label className="grid gap-1.5 text-xs font-medium sm:col-span-2">Venue
-              <Input value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="Venue name · City" />
+            <label className="grid gap-1.5 text-xs font-medium sm:col-span-2">Venue name (optional)
+              <Input value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="e.g. Riverfront Convention Centre" />
+            </label>
+            <label className="grid gap-1.5 text-xs font-medium sm:col-span-2">City
+              <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Ahmedabad" />
             </label>
             <label className="grid gap-1.5 text-xs font-medium sm:col-span-2">Estimated budget
               <Input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="e.g. 250000 or ₹2,50,000 (optional)" inputMode="decimal" />
             </label>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
-            <Button onClick={createEvent}>Create event</Button>
+            <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={saving}>Cancel</Button>
+            <Button onClick={createEvent} disabled={saving}>{saving ? "Saving..." : "Create event"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -824,7 +1056,7 @@ function EventsPage({ search }: { search: string }) {
               </div>
               <DialogHeader>
                 <div className="flex items-center justify-between gap-3"><DialogTitle>{selectedEvent.name}</DialogTitle><StatusBadge status={selectedEvent.status} /></div>
-                <DialogDescription>Event overview · Demo workspace</DialogDescription>
+                <DialogDescription>Event overview · Organization workspace</DialogDescription>
               </DialogHeader>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg bg-secondary/60 p-3"><p className="text-[10px] text-muted-foreground">Event date</p><p className="mt-1 text-xs font-semibold">{selectedEvent.date}</p></div>

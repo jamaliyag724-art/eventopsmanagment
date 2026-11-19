@@ -10,6 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { budgetSeries, events, moduleDescriptions, modules, tasks, vendors, workshops } from "../data";
+import {
+  createOrganizationTask,
+  deleteOrganizationTask,
+  listOrganizationTasks,
+  updateOrganizationTask,
+} from "@/lib/tasks.functions";
+import { listOrganizationEvents } from "@/lib/events.functions";
 
 type Row = { id: number; name: string; detail: string; owner: string; date: string; status: string; priority: string };
 const seed: Record<string, Row[]> = {
@@ -116,6 +123,7 @@ export function ModuleWorkspace({ module, search = "" }: { module: string; searc
   ), [rows, filter, search]);
 
   if (!current || module === "overview" || module === "events") return <div className="rounded-xl border border-dashed p-8 text-sm text-muted-foreground">Module not found.</div>;
+  if (module === "planning") return <PlanningTasksWorkspace search={search} />;
 
   const addLabel = module === "planning" ? "task" : module === "workshops" ? "workshop" : module === "vendors" ? "vendor" : module === "documents" ? "document" : module === "workforce" ? "team assignment" : module === "sponsors" ? "sponsor" : module === "venues" ? "venue or resource" : module === "live-operations" ? "operation" : module === "intelligence" ? "signal" : module === "analytics" ? "report record" : "team member";
   const summaryCards = summary[module] ?? [];
@@ -203,6 +211,323 @@ export function ModuleWorkspace({ module, search = "" }: { module: string; searc
     <p className="flex items-center gap-2 text-[10px] text-muted-foreground"><AlertTriangle className="h-3.5 w-3.5"/>Prototype mode · Changes are held in local page state and reset on refresh. No backend persistence.</p>
     <Dialog open={dialog} onOpenChange={setDialog}><DialogContent className="sm:max-w-[520px]"><DialogHeader><DialogTitle>{editingId === null ? `Add ${addLabel}` : `Edit ${addLabel}`}</DialogTitle><DialogDescription>Changes apply to this demo session only and reset on refresh.</DialogDescription></DialogHeader><div className="grid gap-3 py-2"><Field label="Name" value={draft.name} onChange={v=>setDraft(p=>({...p,name:v}))} placeholder={`Enter ${addLabel} name`}/><Field label="Event / details" value={draft.detail} onChange={v=>setDraft(p=>({...p,detail:v}))} placeholder="Related event or context"/><div className="grid gap-3 sm:grid-cols-2"><Field label="Owner / contact" value={draft.owner} onChange={v=>setDraft(p=>({...p,owner:v}))} placeholder="Assign an owner"/><Field label="Date / timing" value={draft.date} onChange={v=>setDraft(p=>({...p,date:v}))} placeholder="Date or timing"/></div><div className="grid gap-3 sm:grid-cols-2"><div><label className="mb-1 block text-[11px] font-medium">Status</label><Select value={draft.status} onValueChange={v=>setDraft(p=>({...p,status:v}))}><SelectTrigger aria-label="Record status"><SelectValue/></SelectTrigger><SelectContent>{Array.from(new Set([draft.status,"To do","In progress","Done","On track","Review due","Confirmed","Active","Complete","Resolved","Monitoring","In planning","Conflict","Current","Assigned","Preferred","Contracted","At risk"])).map(v=><SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent></Select></div><div><label className="mb-1 block text-[11px] font-medium">Priority / value</label><Select value={draft.priority} onValueChange={v=>setDraft(p=>({...p,priority:v}))}><SelectTrigger aria-label="Record priority or value"><SelectValue/></SelectTrigger><SelectContent>{Array.from(new Set([draft.priority,"Low","Medium","High","Critical"])).map(v=><SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent></Select></div></div></div><DialogFooter><Button variant="outline" onClick={()=>setDialog(false)}>Cancel</Button><Button onClick={saveRecord}>{editingId === null ? "Create record" : "Save changes"}</Button></DialogFooter></DialogContent></Dialog>
     <Dialog open={!!detail} onOpenChange={o=>!o&&setDetail(null)}><DialogContent className="sm:max-w-[500px]"><DialogHeader><DialogTitle>{detail?.name}</DialogTitle><DialogDescription>{detail?.detail}</DialogDescription></DialogHeader>{detail&&<div className="space-y-3 py-2"><div className="grid grid-cols-2 gap-3">{[["Owner / contact",detail.owner],["Date / timing",detail.date],["Priority / value",detail.priority],["Current status",detail.status]].map(([a,b])=><div key={a} className="rounded-lg bg-secondary/60 p-3"><p className="text-[10px] text-muted-foreground">{a}</p><p className="mt-1 text-xs font-semibold">{b}</p></div>)}</div><div><label className="mb-1 block text-[11px] font-medium">Update status</label><Select value={detail.status} onValueChange={v=>updateStatus(detail,v)}><SelectTrigger aria-label="Update record status"><SelectValue/></SelectTrigger><SelectContent>{Array.from(new Set([detail.status,"To do","In progress","Done","On track","Review due","Confirmed","Active","Complete","Resolved","Monitoring","In planning","Conflict","Current","Assigned","Preferred","Contracted","At risk"])).map(s=><SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div></div>}<DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-between"><Button variant="destructive" onClick={()=>detail&&removeRecord(detail)}>Delete</Button><div className="flex gap-2"><Button variant="outline" onClick={()=>setDetail(null)}>Close</Button><Button onClick={()=>detail&&openEdit(detail)}>Edit record</Button></div></DialogFooter></DialogContent></Dialog>
+  </div>;
+}
+
+
+type PlanningTask = {
+  id: string;
+  eventId: string;
+  title: string;
+  description: string | null;
+  status: "TODO" | "IN_PROGRESS" | "BLOCKED" | "DONE";
+  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+  dueAt: string | null;
+  event: { name: string };
+  assignee: { id: string; name: string; email: string } | null;
+};
+
+type PlanningEvent = { id: string; name: string };
+
+const taskStatusLabel: Record<PlanningTask["status"], string> = {
+  TODO: "To do",
+  IN_PROGRESS: "In progress",
+  BLOCKED: "Blocked",
+  DONE: "Done",
+};
+const taskPriorityLabel: Record<PlanningTask["priority"], string> = {
+  LOW: "Low",
+  MEDIUM: "Medium",
+  HIGH: "High",
+  URGENT: "Urgent",
+};
+const taskStatusValue: Record<string, PlanningTask["status"]> = {
+  "To do": "TODO",
+  "In progress": "IN_PROGRESS",
+  Blocked: "BLOCKED",
+  Done: "DONE",
+};
+
+function PlanningTasksWorkspace({ search = "" }: { search?: string }) {
+  const [tasks, setTasks] = useState<PlanningTask[]>([]);
+  const [events, setEvents] = useState<PlanningEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [view, setView] = useState("Board");
+  const [filter, setFilter] = useState("All");
+  const [dialog, setDialog] = useState(false);
+  const [editing, setEditing] = useState<PlanningTask | null>(null);
+  const [detail, setDetail] = useState<PlanningTask | null>(null);
+  const [draft, setDraft] = useState({
+    title: "", description: "", eventId: "", dueDate: "",
+    status: "TODO" as PlanningTask["status"],
+    priority: "MEDIUM" as PlanningTask["priority"],
+  });
+
+  const load = async () => {
+    setLoadError("");
+    try {
+      const [taskRows, eventRows] = await Promise.all([
+        listOrganizationTasks(),
+        listOrganizationEvents(),
+      ]);
+      setTasks(taskRows as PlanningTask[]);
+      setEvents(eventRows.map((event) => ({ id: event.id, name: event.name })));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to load tasks.";
+      setLoadError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { void load(); }, []);
+
+  const filtered = useMemo(() => tasks.filter((task) => {
+    const statusMatch = filter === "All" || taskStatusLabel[task.status] === filter;
+    const haystack = `${task.title} ${task.description ?? ""} ${task.event.name} ${task.assignee?.name ?? ""} ${taskStatusLabel[task.status]} ${taskPriorityLabel[task.priority]}`.toLowerCase();
+    return statusMatch && haystack.includes(search.toLowerCase());
+  }), [tasks, filter, search]);
+
+  const openCreate = () => {
+    setEditing(null);
+    setDraft({
+      title: "", description: "", eventId: events[0]?.id ?? "", dueDate: "",
+      status: "TODO", priority: "MEDIUM",
+    });
+    setDialog(true);
+  };
+
+  const openEdit = (task: PlanningTask) => {
+    setEditing(task);
+    setDraft({
+      title: task.title,
+      description: task.description ?? "",
+      eventId: task.eventId,
+      dueDate: task.dueAt ? task.dueAt.slice(0, 10) : "",
+      status: task.status,
+      priority: task.priority,
+    });
+    setDetail(null);
+    setDialog(true);
+  };
+
+  const save = async () => {
+    if (draft.title.trim().length < 2) {
+      toast.error("Task title must contain at least 2 characters.");
+      return;
+    }
+    if (!draft.eventId) {
+      toast.error("Select an event before creating a task.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const dueAt = draft.dueDate ? new Date(`${draft.dueDate}T23:59:00+05:30`) : undefined;
+      if (editing) {
+        await updateOrganizationTask({
+          data: {
+            id: editing.id,
+            title: draft.title.trim(),
+            description: draft.description.trim() || null,
+            status: draft.status,
+            priority: draft.priority,
+            dueAt: dueAt ?? null,
+          },
+        });
+        toast.success("Task updated.");
+      } else {
+        await createOrganizationTask({
+          data: {
+            eventId: draft.eventId,
+            title: draft.title.trim(),
+            description: draft.description.trim() || undefined,
+            status: draft.status,
+            priority: draft.priority,
+            dueAt,
+          },
+        });
+        toast.success("Task created.");
+      }
+      setDialog(false);
+      setEditing(null);
+      await load();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save task.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const changeStatus = async (task: PlanningTask, status: PlanningTask["status"]) => {
+    try {
+      await updateOrganizationTask({ data: { id: task.id, status } });
+      setDetail(null);
+      await load();
+      toast.success("Task status updated.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update task.");
+    }
+  };
+
+  const remove = async (task: PlanningTask) => {
+    if (!window.confirm(`Delete "${task.title}"? This cannot be undone.`)) return;
+    try {
+      await deleteOrganizationTask({ data: { id: task.id } });
+      setDetail(null);
+      await load();
+      toast.success("Task deleted.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not delete task.");
+    }
+  };
+
+  const counts = {
+    open: tasks.filter((task) => task.status !== "DONE").length,
+    progress: tasks.filter((task) => task.status === "IN_PROGRESS").length,
+    priority: tasks.filter((task) => task.priority === "HIGH" || task.priority === "URGENT").length,
+  };
+
+  const dateLabel = (value: string | null) => value
+    ? new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Kolkata" }).format(new Date(value))
+    : "No due date";
+
+  return <div className="space-y-6">
+    <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <div>
+        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Utsav · Workspace</p>
+        <h1 className="text-[26px] font-semibold tracking-[-0.6px] md:text-[30px]">Planning & Tasks</h1>
+        <p className="mt-1.5 max-w-2xl text-[13px] text-muted-foreground">Create, assign and track operational work across your events.</p>
+      </div>
+      <Button size="sm" className="h-9 gap-2 text-xs" onClick={openCreate} disabled={!events.length}>
+        <Plus className="h-3.5 w-3.5"/>Add task
+      </Button>
+    </div>
+
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      {[
+        ["Open tasks", String(counts.open), "Not yet completed"],
+        ["In progress", String(counts.progress), "Currently being worked on"],
+        ["High priority", String(counts.priority), "High or urgent priority"],
+      ].map(([label, value, note], i) => <Panel key={label}>
+        <div className="flex items-start justify-between">
+          <p className="text-[11px] text-muted-foreground">{label}</p>
+          <span className="rounded-lg bg-secondary p-2 text-muted-foreground">
+            {[<Activity key="a" className="h-4 w-4"/>, <Wallet key="w" className="h-4 w-4"/>, <Users key="u" className="h-4 w-4"/>][i]}
+          </span>
+        </div>
+        <div className="mt-3 flex flex-wrap items-baseline justify-between gap-2">
+          <strong className="text-[25px] font-semibold tracking-tight">{value}</strong>
+          <span className="text-[10px] text-muted-foreground">{note}</span>
+        </div>
+      </Panel>)}
+    </div>
+
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <Tabs value={view} onValueChange={setView}>
+        <TabsList><TabsTrigger value="Board">Board</TabsTrigger><TabsTrigger value="List">List</TabsTrigger></TabsList>
+      </Tabs>
+      <Select value={filter} onValueChange={setFilter}>
+        <SelectTrigger className="h-9 w-40 text-xs"><Filter className="mr-2 h-3.5 w-3.5"/><SelectValue/></SelectTrigger>
+        <SelectContent>
+          {["All", "To do", "In progress", "Blocked", "Done"].map((status) =>
+            <SelectItem key={status} value={status}>{status === "All" ? "All statuses" : status}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    </div>
+
+    {loading ? <Panel><p className="py-8 text-center text-xs text-muted-foreground">Loading tasks from database…</p></Panel>
+    : loadError ? <Panel><p className="text-sm font-medium text-destructive">Could not load tasks</p><p className="mt-1 text-xs text-muted-foreground">{loadError}</p><Button className="mt-3" size="sm" variant="outline" onClick={() => { setLoading(true); void load(); }}>Retry</Button></Panel>
+    : !events.length ? <Panel><p className="py-6 text-center text-sm font-medium">Create an event first</p><p className="text-center text-xs text-muted-foreground">Every task must belong to an event in your organization.</p></Panel>
+    : view === "Board" ? <div className="grid gap-4 lg:grid-cols-4">
+      {(["TODO", "IN_PROGRESS", "BLOCKED", "DONE"] as const).map((status) => <Panel key={status} className="min-h-64 bg-secondary/25">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-sm font-semibold">{taskStatusLabel[status]}</h3>
+          <Badge variant="secondary">{filtered.filter((task) => task.status === status).length}</Badge>
+        </div>
+        <div className="space-y-3">
+          {filtered.filter((task) => task.status === status).map((task) => <button key={task.id} onClick={() => setDetail(task)} className="w-full rounded-lg border border-border bg-card p-3 text-left transition hover:border-primary/50">
+            <p className="text-xs font-semibold leading-snug">{task.title}</p>
+            <p className="mt-1.5 text-[10px] text-muted-foreground">{task.event.name}</p>
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <span className="text-[10px] text-muted-foreground">{task.assignee?.name ?? "Unassigned"} · {dateLabel(task.dueAt)}</span>
+              <Pill>{taskPriorityLabel[task.priority]}</Pill>
+            </div>
+          </button>)}
+        </div>
+      </Panel>)}
+    </div> : <Table
+      headers={["Task", "Event", "Assignee", "Due date", "Status", "Priority"]}
+      rows={filtered.map((task) => [
+        task.title, task.event.name, task.assignee?.name ?? "Unassigned",
+        dateLabel(task.dueAt), taskStatusLabel[task.status], taskPriorityLabel[task.priority],
+      ])}
+      onSelect={(index) => setDetail(filtered[index] ?? null)}
+    />}
+
+    <p className="flex items-center gap-2 text-[10px] text-muted-foreground">
+      <AlertTriangle className="h-3.5 w-3.5"/>Tasks are stored in your organization database. Assignee selection will be connected with the team directory in a later step.
+    </p>
+
+    <Dialog open={dialog} onOpenChange={setDialog}>
+      <DialogContent className="sm:max-w-[520px]">
+        <DialogHeader>
+          <DialogTitle>{editing ? "Edit task" : "Create task"}</DialogTitle>
+          <DialogDescription>Task data is saved to the selected event in your organization.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-3 py-2">
+          <Field label="Task title" value={draft.title} onChange={(v) => setDraft((p) => ({ ...p, title: v }))} placeholder="e.g. Confirm stage production"/>
+          <Field label="Description" value={draft.description} onChange={(v) => setDraft((p) => ({ ...p, description: v }))} placeholder="Add task details"/>
+          <div>
+            <label className="mb-1 block text-[11px] font-medium">Related event</label>
+            <Select value={draft.eventId} onValueChange={(v) => setDraft((p) => ({ ...p, eventId: v }))} disabled={!!editing}>
+              <SelectTrigger><SelectValue placeholder="Select an event"/></SelectTrigger>
+              <SelectContent>{events.map((event) => <SelectItem key={event.id} value={event.id}>{event.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div><label className="mb-1 block text-[11px] font-medium">Due date</label><Input type="date" value={draft.dueDate} onChange={(e) => setDraft((p) => ({ ...p, dueDate: e.target.value }))} className="h-9 text-xs"/></div>
+            <div><label className="mb-1 block text-[11px] font-medium">Status</label>
+              <Select value={draft.status} onValueChange={(v) => setDraft((p) => ({ ...p, status: v as PlanningTask["status"] }))}>
+                <SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{Object.entries(taskStatusLabel).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div><label className="mb-1 block text-[11px] font-medium">Priority</label>
+            <Select value={draft.priority} onValueChange={(v) => setDraft((p) => ({ ...p, priority: v as PlanningTask["priority"] }))}>
+              <SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{Object.entries(taskPriorityLabel).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setDialog(false)} disabled={saving}>Cancel</Button>
+          <Button onClick={save} disabled={saving}>{saving ? "Saving…" : editing ? "Save changes" : "Create task"}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog open={!!detail} onOpenChange={(open) => !open && setDetail(null)}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader><DialogTitle>{detail?.title}</DialogTitle><DialogDescription>{detail?.event.name}</DialogDescription></DialogHeader>
+        {detail && <div className="space-y-3 py-2">
+          <p className="text-xs text-muted-foreground">{detail.description || "No description added."}</p>
+          <div className="grid grid-cols-2 gap-3">
+            {[["Assignee", detail.assignee?.name ?? "Unassigned"], ["Due date", dateLabel(detail.dueAt)], ["Priority", taskPriorityLabel[detail.priority]], ["Status", taskStatusLabel[detail.status]]].map(([label, value]) =>
+              <div key={label} className="rounded-lg bg-secondary/60 p-3"><p className="text-[10px] text-muted-foreground">{label}</p><p className="mt-1 text-xs font-semibold">{value}</p></div>)}
+          </div>
+          <div><label className="mb-1 block text-[11px] font-medium">Update status</label>
+            <Select value={detail.status} onValueChange={(value) => void changeStatus(detail, value as PlanningTask["status"])}>
+              <SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{Object.entries(taskStatusLabel).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+        </div>}
+        <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+          <Button variant="destructive" onClick={() => detail && void remove(detail)}>Delete task</Button>
+          <div className="flex gap-2"><Button variant="outline" onClick={() => setDetail(null)}>Close</Button><Button onClick={() => detail && openEdit(detail)}>Edit task</Button></div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>;
 }
 
