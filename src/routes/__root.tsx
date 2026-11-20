@@ -222,7 +222,8 @@ function RootComponent() {
   const workspaceRoute =
     pathname.startsWith("/app") || pathname.startsWith("/admin");
   const publicRoute = ["/", "/features", "/solutions", "/pricing", "/about", "/contact", "/login", "/signup", "/privacy", "/terms", "/cookies"].includes(pathname);
-
+const showStartupExperience =
+  publicRoute && pathname !== "/login" && pathname !== "/signup";
   return (
     <QueryClientProvider client={queryClient}>
       <div key={pathname} className={`utsav-route-stage${publicRoute ? " utsav-public-route-stage" : ""}`}>
@@ -233,7 +234,7 @@ function RootComponent() {
           <Outlet />
         </Suspense>
       </div>
-      {publicRoute && <PublicStartupExperience />}
+      {showStartupExperience && <PublicStartupExperience />}
       <Toaster />
     </QueryClientProvider>
   );
